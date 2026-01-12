@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>مكتب التأجير | SEVENS</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.rtl.min.css">
+  <style>
+    :root {
+  --ink:#1e2a3a;
+  --muted:#6b7c93;
+  --card:#ffffff;
+  --line:#e8f0ff;
+  --s-500:#2f8aff;
+  --s-600:#1f68d6;
+  --s-700:#154fa8;
+  --bg1:#f8fbff;
+  --bg2:#eaf3ff;
+  --glass: rgba(255,255,255,.55);
+  --glass-b: rgba(255,255,255,.8);
+}
+
+*{box-sizing:border-box}
+html,body{height:100%}
+body{
+  margin:0;
+  font-family:'Tajawal',sans-serif;
+  color:var(--ink);
+  background:
+    radial-gradient(1200px 500px at 80% -50%, rgba(47,138,255,.18), transparent 60%),
+    linear-gradient(180deg, var(--bg1), var(--bg2), var(--bg1));
+}
+
+.container{padding:28px 18px; max-width:1100px; margin:auto}
+
+/* Header */
+.page-header{text-align:center; margin-bottom:18px}
+.page-logo{
+  width:96px; height:96px; object-fit:cover;
+  border-radius:14px; box-shadow:0 8px 24px rgba(31,104,214,.25); margin-bottom:10px;
+}
+.page-sub{color:var(--muted); font-size:14px}
+
+/* Card */
+.card{
+  background:var(--card);
+  border-radius:18px;
+  padding:18px;
+  box-shadow:0 15px 40px rgba(31,104,214,.10), inset 0 0 0 1px #eef3ff;
+  margin-bottom:18px;
+}
+.card-head{display:flex; align-items:center; justify-content:space-between; gap:8px}
+h1,h2{margin:0 0 10px}
+
+/* Form */
+.grid{display:grid; gap:10px}
+.form-grid{grid-template-columns: repeat(4, minmax(0,1fr));}
+.form-grid .full{grid-column: 1 / -1}
+label{display:block; font-size:13px; margin-bottom:6px; color:#26406a}
+input,select,button{
+  width:100%; padding:11px 12px; border:1px solid #e3edff; border-radius:12px; background:#fbfdff;
+  font-family:'Tajawal',sans-serif; font-size:14px; color:var(--ink);
+}
+input:focus,select:focus{outline:none; border-color:#5aa8ff; box-shadow:0 0 0 3px rgba(47,138,255,.18)}
+.actions{display:flex; align-items:center; gap:12px}
+
+/* Buttons */
+.btn{cursor:pointer; transition:.15s ease; user-select:none}
+.btn.primary{
+  background: linear-gradient(92deg, var(--s-600), var(--s-500));
+  color:#fff; border:none; font-weight:600;
+  box-shadow: 0 8px 18px rgba(31,104,214,.22);
+}
+.btn.primary:hover{filter:brightness(1.05)}
+.btn.outline{
+  background:#ffffff; color:#154fa8; border:1px solid #cfe1ff;
+}
+.btn.outline:hover{background:#f6faff}
+
+/* Toolbar */
+.toolbar{display:flex; flex-wrap:wrap; gap:10px; align-items:center; margin:8px 0 0}
+.glass{
+  backdrop-filter: blur(8px);
+  background: var(--glass);
+  border:1px solid var(--glass-b);
+}
+
+/* Table */
+.table-wrap{overflow:auto; border:1px solid #e9f0ff; border-radius:14px}
+.data-table{width:100%; border-collapse:collapse}
+.data-table th, .data-table td{
+  padding:12px; border-bottom:1px solid #eef3ff; text-align:right
+}
+.data-table th{
+  background:linear-gradient(0deg, #f5f9ff, #f9fbff);
+  font-weight:700; color:#173b7a; position:sticky; top:0; z-index:1;
+}
+.data-table tbody tr:hover{background:#fbfeff}
+.data-table tbody tr:nth-child(even){background:#fcfeff}
+.empty{text-align:center; padding:26px; color:var(--muted)}
+
+
+
+/* Footer */
+.footer{text-align:center; color:#6c7da1; font-size:13px; padding:18px 12px 30px;}
+
+/* Responsive */
+@media (max-width: 1024px){.form-grid{grid-template-columns: repeat(2, minmax(0,1fr));}}
+@media (max-width: 640px){.form-grid{grid-template-columns: 1fr;}}
+
+
+.modal .close {
+  float: left;
+  font-size: 22px;
+  cursor: pointer;
+  color: #333;
+}
+
+.hidden { display: none; }
+
+.history-item {
+  background: #f8fbff;
+  padding: 8px 10px;
+  margin: 5px 0;
+  border-radius: 8px;
+}
+</style>
+</head>
+<body>
+<nav class="navbar navbar-expand-lg bg-white shadow-sm mb-3">
+  <div class="container-fluid">
+    <a class="navbar-brand fw-bold text-primary">SEVENS — مكتب التأجير</a>
+    <div class="d-flex gap-2">
+    </div>
+  </div>
+</nav>
+
+<div class="container my-3">
+  <!-- بحث + فلتر -->
+  <div class="row g-2 align-items-end">
+    <div class="col-md-6">
+      <label class="form-label">بحث باللوحة (أو أي حقل)</label>
+      <input id="search" type="text" class="form-control" placeholder="اكتب رقم اللوحة لمعرفة آخر تغيير">
+    </div>
+    <div class="col-md-3">
+      <label class="form-label">فلتر العرض</label>
+      <select id="limit" class="form-select">
+        <option value="all">جميع السيارات</option>
+        <option value="10">آخر 10</option>
+        <option value="20">آخر 20</option>
+        <option value="30">آخر 30</option>
+        <option value="40">آخر 40</option>
+        <option value="50">آخر 50</option>
+      </select>
+    </div>
+    <div class="col-md-3">
+      <button id="btnRefresh" class="btn btn-primary w-100">تحديث الجدول</button>
+    </div>
+  </div>
+
+  <hr>
+
+  <!-- جدول العرض -->
+  <div class="card shadow-sm">
+    <div class="card-header bg-white fw-bold">السيارات</div>
+    <div class="card-body p-0">
+      <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+          <thead class="table-light">
+            <tr>
+              <th>اللوحة</th>
+              <th>اللون</th>
+              <th>الشركة</th>
+              <th>الموديل</th>
+              <th>رقم الهيكل</th>
+              <th>تاريخ تغيير الزيت</th>
+              <th>تفاصيل</th>
+            </tr>
+          </thead>
+          <tbody id="carsBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- نافذة التفاصيل -->
+<div class="modal fade" id="carModal" tabindex="-1">
+  <div class="modal-dialog modal-lg modal-dialog-scrollable">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">تفاصيل السيارة</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <div id="carDetails" class="mb-3"></div>
+        <hr>
+        <div class="d-flex justify-content-between align-items-center">
+          <h6 class="mb-0">سجل تغييرات الزيت</h6>
+          <button class="btn btn-sm btn-outline-primary" id="btnLoadHistory">عرض السجل</button>
+        </div>
+        <div class="table-responsive mt-2">
+          <table class="table table-sm">
+            <thead>
+              <tr>
+                <th>التاريخ</th>
+                <th>العداد</th>
+                <th>ممشى الزيت</th>
+                <th>ملاحظات</th>
+              </tr>
+            </thead>
+            <tbody id="historyBody"></tbody>
+          </table>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" data-bs-dismiss="modal">إغلاق</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+const COLS = {
+  vin: "رقم الهيكل",
+  plate: "اللوحة",
+  brand: "الشركة",
+  model: "فئة السيارة",
+  color: "اللون",
+  year: "سنة الصناعة",
+  last_oil_date: "تاريخ تغيير الزيت",
+  last_odometer: "عداد السيارة",
+  last_oil_run: "ممشى الزيت",
+  updated_at: "آخر تحديث"
+};
+
+let currentPlate = null;
+let carModal = null;
+
+async function fetchCars(){
+  const q = document.getElementById('search').value || '';
+  const limit = document.getElementById('limit').value || 'all';
+  const res = await fetch(`/api/cars?q=${encodeURIComponent(q)}&limit=${encodeURIComponent(limit)}`);
+  return await res.json();
+}
+function renderRows(rows){
+  const body = document.getElementById('carsBody');
+  body.innerHTML = '';
+  rows.forEach(r=>{
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>${r[COLS.plate]||''}</td>
+      <td>${r[COLS.color]||''}</td>
+      <td>${r[COLS.brand]||''}</td>
+      <td>${r[COLS.model]||''}</td>
+      <td>${r[COLS.vin]||''}</td>
+      <td>${r[COLS.last_oil_date]||''}</td>
+      <td><button class="btn btn-sm btn-outline-primary">عرض</button></td>
+    `;
+    const btn = tr.querySelector('button');
+    btn.onclick = ()=> openDetails(r[COLS.plate] || r[COLS.vin]);
+    body.appendChild(tr);
+  });
+}
+async function refresh(){ renderRows(await fetchCars()); }
+
+async function openDetails(plate){
+  // تنظيف إضافي
+  plate = (plate || "").toString().trim();
+
+  // تصليح +/% التي تشوه VIN
+  plate = plate.replace(/\s+/g, "");
+  plate = plate.replace(/%20/g, "");
+  plate = plate.replace(/\+/g, "");
+  plate = plate.replace(/:/g, "");
+
+  currentPlate = plate;
+
+  const url = `/api/car/${encodeURIComponent(plate)}`;
+
+  console.log("Fetching car:", url); // debug مهم
+
+  const res = await fetch(url);
+
+  const j = await res.json();
+  if(!j.ok){ alert("لم يتم العثور على السيارة"); return; }
+  const d = j.data;
+  const box = document.getElementById('carDetails');
+  box.innerHTML = `
+    <div class="row g-2">
+      <div class="col-md-6"><strong>اللوحة:</strong> ${d[COLS.plate]||''}</div>
+      <div class="col-md-6"><strong>رقم الهيكل:</strong> ${d[COLS.vin]||''}</div>
+      <div class="col-md-6"><strong>الشركة:</strong> ${d[COLS.brand]||''}</div>
+      <div class="col-md-6"><strong>الموديل:</strong> ${d[COLS.model]||''}</div>
+      <div class="col-md-6"><strong>اللون:</strong> ${d[COLS.color]||''}</div>
+      <div class="col-md-6"><strong>سنة الصناعة:</strong> ${d[COLS.year]||''}</div>
+      <div class="col-md-6"><strong>آخر تغيير زيت:</strong> ${d[COLS.last_oil_date]||''}</div>
+      <div class="col-md-6"><strong>عداد آخر تغيير:</strong> ${d[COLS.last_odometer]||''}</div>
+      <div class="col-md-6"><strong>ممشى الزيت الحالي:</strong> ${d[COLS.last_oil_run]||''}</div>
+      <div class="col-md-6"><strong>آخر تحديث:</strong> ${d[COLS.updated_at]||''}</div>
+    </div>
+  `;
+  document.getElementById('historyBody').innerHTML = '';
+  if(!carModal){ carModal = new bootstrap.Modal(document.getElementById('carModal')); }
+  carModal.show();
+}
+
+document.getElementById('btnLoadHistory').onclick = async ()=>{
+  if(!currentPlate) return;
+  const res = await fetch(`/api/oil_history/${encodeURIComponent(currentPlate)}`);
+  const rows = await res.json();
+  const body = document.getElementById('historyBody');
+  body.innerHTML = '';
+  rows.forEach(r=>{
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>${r["تاريخ التغيير"]||''}</td>
+      <td>${r["عداد السيارة"]||''}</td>
+      <td>${r["ممشى الزيت"]||''}</td>
+      <td>${r["ملاحظات"]||''}</td>
+    `;
+    body.appendChild(tr);
+  });
+};
+
+document.getElementById('btnRefresh').onclick = refresh;
+document.getElementById('search').oninput = refresh;
+document.getElementById('limit').onchange = refresh;
+
+refresh();
+</script>
+</body>
+</html>

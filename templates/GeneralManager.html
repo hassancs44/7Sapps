@@ -1,0 +1,1265 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>لوحة المدير العام | SEVENS</title>
+
+  <!-- خطوط وأيقونات -->
+  <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+
+  <style>
+    :root{
+      --blue-50:#e3f2fd; --blue-100:#bbdefb; --blue-200:#90caf9; --blue-300:#64b5f6;
+      --blue-400:#42a5f5; --blue-500:#2196f3; --blue-600:#1e88e5; --blue-700:#1976d2;
+      --sky:#f8fbff; --ink:#2c3e50; --muted:#607d8b; --line:#eef5ff;
+      --green:#43a047; --red:#e53935; --amber:#ffb300; --shadow: rgba(0,0,0,.06);
+    }
+    *{margin:0;padding:0;box-sizing:border-box;font-family:'Tajawal',sans-serif}
+    body{background:var(--sky);color:var(--ink);min-height:100vh}
+
+    /* Navbar */
+    .navbar{
+      background:#fff;padding:16px 24px;display:flex;justify-content:space-between;align-items:center;
+      box-shadow:0 2px 12px var(--shadow);position:sticky;top:0;z-index:100;border-radius:14px;margin:16px
+    }
+    .logo-box{display:flex;align-items:center;gap:12px}
+    .logo-box img{width:40px;height:40px;object-fit:contain;border-radius:10px}
+    .logo-box h1{color:var(--blue-600);font-size:20px;font-weight:700}
+    .user-info{display:flex;align-items:center;gap:12px;color:#34495e;font-weight:600}
+    .logout-btn{background:#e3f2fd;color:#1976d2;border:none;padding:6px 14px;border-radius:8px;font-weight:600;cursor:pointer}
+    .logout-btn:hover{background:#bbdefb}
+
+    .container{max-width:1220px;margin:0 auto 24px; padding:0 16px}
+
+    /* Tabs */
+    .tabs{display:flex;gap:10px;margin-bottom:18px;flex-wrap:wrap}
+    .tab-btn{padding:10px 14px;border:2px solid var(--blue-50);border-radius:10px;background:#fff;color:#1565c0;font-weight:700;cursor:pointer}
+    .tab-btn.active{background:linear-gradient(90deg,var(--blue-500),var(--blue-700));color:#fff;border-color:transparent}
+    .tab{display:none}
+    .tab.active{display:block}
+
+    .section-title{font-size:22px;color:var(--blue-600);margin:10px 0 12px;padding-bottom:10px;border-bottom:2px solid var(--blue-50);display:flex;align-items:center;gap:10px}
+
+    /* Filters & Buttons */
+    .filters{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:12px}
+    .form-control{padding:10px;border:2px solid var(--blue-50);border-radius:10px;background:#fff}
+    .btn{padding:10px 14px;border:none;border-radius:10px;font-weight:700;cursor:pointer}
+    .btn-primary{background:linear-gradient(90deg,var(--blue-500),var(--blue-700));color:#fff}
+    .btn-green{background:var(--green);color:#fff}
+    .btn-danger{background:var(--red);color:#fff}
+    .btn-outline{background:#fff;border:2px solid var(--blue-50);color:#1565c0}
+
+    /* Toggle scope */
+    .scope-switch{display:flex;gap:8px;margin:8px 0 16px;flex-wrap:wrap}
+    .toggle-btn{background:#fff;color:#1565c0;border:2px solid #bbdefb;padding:8px 16px;border-radius:10px;font-weight:700;cursor:pointer}
+    .toggle-btn.active{background:linear-gradient(90deg,#2196f3,#1976d2);color:#fff;box-shadow:0 4px 12px rgba(33,150,243,.3)}
+
+    /* Requests grid (cards) */
+    .requests-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:18px}
+    .request-card{background:#fff;border-radius:18px;border:1px solid #e3f2fd;box-shadow:0 4px 10px rgba(0,0,0,.08);transition:.3s;text-align:right;aspect-ratio:1/1;padding:18px;display:flex;flex-direction:column;justify-content:space-between;position:relative}
+    .request-card:hover{transform:translateY(-5px);box-shadow:0 8px 20px rgba(30,136,229,.18)}
+
+    .status-header{height:6px}
+    .status-new{background:#2196f3}
+    .status-in-progress{background:#ff9800}
+    .status-closed{background:#4caf50}
+    .status-rejected{background:#f44336}
+    .card-content{padding:18px}
+    .request-title{font-size:18px;margin:8px 0 10px;color:#0d47a1;font-weight:700}
+    .request-meta{display:flex;flex-wrap:wrap;gap:12px;color:#455a64;font-size:14px;margin-bottom:10px}
+    .status-badge{display:inline-block;padding:4px 10px;border-radius:16px;font-size:12px;color:#fff}
+    .no-requests{text-align:center;color:#7f8c8d;padding:18px}
+
+    /* Users table (غير مستخدم هنا) */
+    table{width:100%;border-collapse:separate;border-spacing:0 8px}
+    thead th{background:#eaf3ff;color:#0d47a1;padding:10px;border-radius:10px;font-size:14px}
+    tbody td{background:#fff;padding:10px;border:1px solid var(--line)}
+    tbody tr{box-shadow:0 2px 8px rgba(0,0,0,.04)}
+
+    /* Modal (generic) */
+    .modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);justify-content:center;align-items:center;z-index:2000}
+    .modal-content{background:#fff;width:90%;max-width:560px;border-radius:16px;padding:20px 18px}
+    .modal h3{margin-bottom:10px;color:#1565c0}
+    .modal .row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+
+    /* File viewer modal + Ticket details */
+    .file-viewer-modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);justify-content:center;align-items:center;z-index:3000;padding:20px}
+    .file-viewer-content{background:#fff;border-radius:16px;padding:20px;max-width:900px;width:100%;max-height:90vh;overflow:auto;position:relative;box-shadow:0 10px 30px rgba(0,0,0,.3)}
+    .file-viewer-body{text-align:initial}
+    .close-btn{position:absolute;top:10px;left:15px;font-size:26px;cursor:pointer;color:#444;transition:.2s}
+    .close-btn:hover{color:#e53935}
+
+    /* New Request Modal */
+    .request-modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);justify-content:center;align-items:center;z-index:2200}
+    .request-modal-content{background:#fff;border-radius:20px;padding:25px 30px;width:95%;max-width:520px;box-shadow:0 10px 30px rgba(0,0,0,.25);text-align:right;animation:fadeIn .25s ease}
+    .request-modal-content h3{text-align:center;font-size:20px;color:#1565c0;margin-bottom:20px;font-weight:700}
+    .request-modal-content .form-group{display:flex;flex-direction:column;margin-bottom:15px}
+    .request-modal-content input,.request-modal-content textarea,.request-modal-content select{border:2px solid #e3f2fd;border-radius:10px;padding:10px;font-size:15px;outline:none;transition:.2s;background:#f9fbff}
+    .request-modal-content input:focus,.request-modal-content textarea:focus,.request-modal-content select:focus{border-color:#64b5f6;box-shadow:0 0 0 2px rgba(33,150,243,.15)}
+    .submit-btn{width:100%;padding:12px;background:linear-gradient(90deg,#2196f3,#1976d2);color:#fff;border:none;border-radius:12px;font-weight:700;font-size:16px;cursor:pointer}
+    .submit-btn:hover{background:linear-gradient(90deg,#1976d2,#0d47a1)}
+
+    /* Chat inline */
+    .chat-msg{margin-bottom:12px;padding:10px 14px;border-radius:14px;max-width:85%;word-wrap:break-word;position:relative;font-size:14px;line-height:1.6;animation:fadeIn .3s ease}
+    .chat-msg.me{margin-left:auto;background:#e3f2fd;color:#0d47a1;border-top-right-radius:0;box-shadow:0 3px 6px rgba(33,150,243,.2)}
+    .chat-msg.other{margin-right:auto;background:#e8f5e9;color:#1b5e20;border-top-left-radius:0;box-shadow:0 3px 6px rgba(76,175,80,.2)}
+    .chat-meta{font-size:12px;color:#607d8b;margin-bottom:4px;display:flex;justify-content:space-between}
+    .chat-attachment a{color:#1565c0;font-weight:700;text-decoration:none}
+    .chat-attachment a:hover{text-decoration:underline}
+
+    /* Timer + status */
+    .update-section{display:flex;gap:10px;align-items:center;margin-top:10px;background:#f9fbfd;padding:10px 12px;border-radius:10px}
+    .status-select{padding:8px 10px;border:2px solid #e3f2fd;border-radius:8px;font-weight:700;color:var(--blue-600);background:#fff;cursor:pointer}
+    .timer-text{display:inline-block;min-width:80px;padding:5px 8px;border-radius:6px;font-weight:700;font-size:14px;text-align:center;color:#333;background:#f1f8e9;border:1px solid #c8e6c9}
+
+    /* Dropdown (departments) */
+    .custom-dropdown{position:relative;width:260px}
+    .dropdown-selected{background:#fff;border:2px solid var(--blue-50);border-radius:10px;padding:10px 14px;display:flex;justify-content:space-between;align-items:center;color:#0d47a1;cursor:pointer;box-shadow:0 2px 6px rgba(33,150,243,.05)}
+    .dropdown-selected i{font-size:14px;color:#1565c0;transition:transform .3s}
+    .custom-dropdown.active .dropdown-selected i{transform:rotate(180deg)}
+    .dropdown-list{position:absolute;top:100%;left:0;right:0;background:#fff;border:2px solid var(--blue-50);border-radius:10px;margin-top:6px;box-shadow:0 6px 20px rgba(0,0,0,.08);display:none;flex-direction:column;z-index:999;max-height:280px;overflow:hidden}
+    .custom-dropdown.active .dropdown-list{display:flex}
+    .dropdown-list input{border:none;border-bottom:1px solid var(--blue-50);padding:8px 10px;outline:none;font-size:14px;color:#1565c0}
+    .dropdown-list div{flex:1;overflow-y:auto}
+    .dropdown-item{padding:10px 12px;transition:.2s;cursor:pointer;color:#2c3e50}
+    .dropdown-item:hover{background:var(--blue-50);color:#0d47a1}
+
+    /* Toast */
+    .toast{position:fixed;bottom:30px;left:50%;transform:translateX(-50%);padding:12px 25px;border-radius:10px;color:#fff;font-size:15px;opacity:0;transition:all .4s ease;z-index:9999}
+    .toast.show{opacity:1;bottom:50px}
+    .toast.success{background:#4caf50}.toast.error{background:#e74c3c}.toast.info{background:#3498db}
+
+    @keyframes fadeIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:translateY(0)}}
+
+    /* Badge تنبيه رسائل */
+    .chat-badge{position: fixed;bottom: 85px;right: 35px;width: 22px;height: 22px;background: #f44336;color: white;border-radius: 50%;font-size: 13px;font-weight: bold;display: none;justify-content: center;align-items: center;box-shadow: 0 0 8px rgba(244,67,54,0.6);z-index: 9999}
+    @keyframes blinkAnim{0%,100%{box-shadow:0 0 10px rgba(33,150,243,0.3)}50%{box-shadow:0 0 25px rgba(33,150,243,0.8)}}
+    .blink{animation:blinkAnim 1.5s ease-in-out}
+  </style>
+</head>
+<body>
+  <!-- Navbar -->
+  <nav class="navbar">
+    <div class="logo-box">
+      <img src="{{ url_for('static', filename='7s.jpg') }}" alt="logo">
+      <h1>لوحة المدير العام</h1>
+    </div>
+    <div class="user-info">
+      <span id="userWelcome">جارٍ التحميل...</span>
+      <button class="logout-btn" onclick="logout()"><i class="fas fa-sign-out-alt"></i> خروج</button>
+    </div>
+  </nav>
+
+  <div class="container">
+    <!-- Tabs -->
+    <div class="tabs">
+      <button class="tab-btn active" onclick="openTab('tab-requests', this)"><i class="fas fa-list"></i> الطلبات</button>
+      <button class="tab-btn" onclick="openTab('tab-export', this)"><i class="fas fa-file-excel"></i> تصدير التقارير</button>
+    </div>
+
+    <!-- === Requests Tab === -->
+    <div id="tab-requests" class="tab active">
+      <div class="section-title"><i class="fas fa-inbox"></i> إدارة الطلبات</div>
+
+      <!-- Scope toggle: كل الطلبات / الواردة لقسمي / المرسلة من قسمي -->
+      <div class="scope-switch">
+        <button id="scopeAll" class="toggle-btn active" onclick="setScope('all', this)"><i class="fas fa-layer-group"></i> الكل</button>
+        <button id="scopeIncoming" class="toggle-btn" onclick="setScope('incoming', this)"><i class="fas fa-download"></i> الواردة لقسمي</button>
+        <button id="scopeOutgoing" class="toggle-btn" onclick="setScope('outgoing', this)"><i class="fas fa-upload"></i> المرسلة من قسمي</button>
+      </div>
+
+      <div class="filters">
+        <!-- Department dropdown with search (فلترة حسب القسم المستلم) -->
+        <div class="custom-dropdown" id="deptDropdown">
+          <div class="dropdown-selected" onclick="toggleDeptDropdown()">
+            <span id="deptSelectedText">جميع الأقسام</span>
+            <i class="fas fa-chevron-down"></i>
+          </div>
+          <div class="dropdown-list" id="deptList">
+            <input type="text" id="deptSearch" placeholder="ابحث عن قسم..." onkeyup="filterDeptList()"/>
+            <div id="deptOptions"></div>
+          </div>
+        </div>
+
+        <select id="statusFilter" class="form-control" onchange="renderRequests()">
+          <option value="">جميع الحالات</option>
+          <option>جديد</option>
+          <option>قيد المراجعة</option>
+          <option>جاري التنفيذ</option>
+          <option>معلق</option>
+          <option>مغلق</option>
+          <option>مرفوض</option>
+        </select>
+
+        <input id="textSearch" class="form-control" placeholder="ابحث في العنوان/الوصف/الأسماء" oninput="renderRequests()" style="min-width:260px">
+
+        <button class="btn btn-outline" onclick="reloadSelected()"><i class="fas fa-sync-alt"></i> تحديث</button>
+        <button class="btn btn-primary" onclick="openNewRequestModal()"><i class="fas fa-plus"></i> رفع طلب جديد</button>
+      </div>
+
+      <div class="requests-grid" id="requestsContainer"><div class="no-requests">جارٍ التحميل...</div></div>
+    </div>
+
+    <!-- === Export Tab === -->
+    <div id="tab-export" class="tab">
+      <div class="section-title"><i class="fas fa-file-export"></i> تصدير الطلبات</div>
+      <div class="filters">
+        <select id="exportDept" class="form-control"></select>
+        <input type="date" id="startDate" class="form-control">
+        <input type="date" id="endDate" class="form-control">
+        <button class="btn btn-green" onclick="exportRequests()"><i class="fas fa-file-excel"></i> تصدير</button>
+      </div>
+      <p style="color:#607d8b">يتم إنشاء ملف Excel متعدد الأوراق (ورقة لكل حالة) وفق <b>جميع الطلبات</b> المرتبطة بالقسم المحدد (مرسلة أو واردة).</p>
+    </div>
+  </div>
+
+  <!-- New Request Modal -->
+  <div class="request-modal" id="newRequestModal">
+    <div class="request-modal-content">
+      <h3>رفع طلب جديد</h3>
+      <form id="newRequestForm">
+        <div class="form-group"><label>عنوان الطلب</label><input id="requestTitle" type="text" required /></div>
+        <div class="form-group"><label>وصف الطلب</label><textarea id="requestDesc" rows="4" required></textarea></div>
+        <div class="form-group"><label>القسم المستلم</label><select id="targetDept" required><option value="">اختر القسم</option></select></div>
+        <div class="form-group"><label>إرفاق ملف (اختياري)</label><input type="file" id="requestFile" accept=".pdf,.jpg,.png,.docx,.xlsx" /></div>
+        <button type="submit" class="submit-btn">إرسال الطلب</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Ticket Details + Chat -->
+  <div id="ticketDetailsModal" class="file-viewer-modal" onclick="closeTicketDetails(event)">
+    <div class="file-viewer-content">
+      <span class="close-btn" onclick="closeTicketDetails(event)">&times;</span>
+      <div class="file-viewer-body">
+        <h3 id="ticketTitle" style="margin-bottom:8px;">تفاصيل الطلب</h3>
+        <div id="ticketInfo" style="line-height:1.9;color:#334155"></div>
+
+        <div id="chatSection" style="margin-top:20px;">
+          <h4 style="color:#1565c0;margin-bottom:10px;"><i class="fas fa-comments"></i> الدردشة والملاحظات</h4>
+          <div id="chatMessages" style="max-height:420px;overflow-y:auto;background:linear-gradient(180deg,#f8fbff,#e3f2fd);border-radius:14px;padding:14px;border:1px solid #bbdefb;box-shadow:inset 0 0 10px rgba(0,0,0,.05);">
+            <div class="loading" style="text-align:center;color:#78909c;">جارٍ تحميل الرسائل...</div>
+          </div>
+          <div id="chatInputArea" style="margin-top:12px;display:flex;flex-direction:column;gap:10px;">
+            <div style="display:flex;gap:8px;align-items:center;">
+              <textarea id="chatInput" placeholder="✍️ اكتب ملاحظتك أو رسالتك..." style="flex:1;border-radius:12px;border:2px solid var(--blue-50);padding:10px;font-size:15px;height:70px;"></textarea>
+              <input type="file" id="chatAttachment" accept=".pdf,.jpg,.png,.docx,.xlsx" style="display:none;">
+              <button onclick="document.getElementById('chatAttachment').click()" class="btn btn-outline" title="إرفاق"><i class="fas fa-paperclip"></i></button>
+              <button onclick="sendChatMessage()" class="btn btn-primary">إرسال</button>
+            </div>
+            <small id="selectedFileLabel" style="color:#1565c0;font-weight:600;"></small>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Generic File Viewer -->
+  <div id="fileViewerModal" class="file-viewer-modal" onclick="closeFileViewer(event)">
+    <div class="file-viewer-content">
+      <span class="close-btn" onclick="closeFileViewer(event)">&times;</span>
+      <div id="fileViewerBody" class="file-viewer-body"></div>
+    </div>
+  </div>
+
+  <script>
+    /* ========== Utilities ========== */
+    function normalizeArabicJS(t){
+      t = (t||'').toString().trim();
+      t = t.replace(/[إأآا]/g,'ا')
+           .replace(/\s+/g,'')
+           .replace(/ة/g,'ه')
+           .replace(/\u200f|\u200e/g,'');
+      t = t.replace(/^اداره?/g,'اداره');
+      return t;
+    }
+
+    function normalizeDepartmentJS(name) {
+      if (!name) return '';
+      let n = name.toString().trim().toLowerCase();
+      n = n.replace(/[إأآا]/g, 'ا').replace(/\s+/g, '').replace(/ة/g, 'ه');
+
+      if (n.includes('الادارهالعامه')) return 'الادارهالعامه';
+      if (n.includes('الادارهالاداريه')) return 'الادارهالاداريه';
+      if (n.includes('الماليه')) return 'الادارهالماليه';
+      if (n.includes('المراجعه')) return 'ادارهالمراجعه';
+      if (n.includes('تحليل')||n.includes('البيانات')) return 'ادارهتحليلالبيانات';
+      if (n.includes('موارد')||n.includes('بشر')) return 'ادارهالمواردالبشريه';
+      if (n.includes('تقنيه')||n.includes('شبك')) return 'ادارهالتقنيهوالشبكات';
+      if (n.includes('تسويق')) return 'ادارهالتسويق';
+      if (n.includes('تشغيل')) return 'ادارهالتشغيل';
+      if (n.includes('تاجير')||n.includes('مكتبتاجير')) return 'ادارهالمكتبتاجير';
+      if (n.includes('صيان')||n.includes('قطع')) return 'ادارهالصيانهوقطعالغيار';
+      if (n.includes('مبيعات') && !n.includes('صاله') && !n.includes('هاتفي')) return 'ادارهالمبيعات';
+      if (n.includes('مخزون')||n.includes('مستودع')) return 'ادارهالمخزونمستودعالسيارات';
+      if (n.includes('مشتريات')) return 'قسمالمشتريات';
+      if (n.includes('هاتفي')) return n.includes('رياض') ? 'قسمالمبيعاتالهاتفيهالرياض' : 'قسمالمبيعاتالهاتفيه';
+
+      if (n.includes('صاله')){
+        if (n.includes('مدينه')) return 'قسممبيعاتالصالهالمدينهمنوره';
+        if (n.includes('جده')) return 'قسممبيعاتالصالهجده';
+        if (n.includes('رياض') && n.includes('1')) return 'قسممبيعاتالصالهالرياض1';
+        if (n.includes('رياض') && n.includes('2')) return 'قسممبيعاتالصالهالرياض2';
+        return 'قسممبيعاتالصاله';
+      }
+      if (n.includes('استقبال') && n.includes('صيان')) return 'قسماستقبالعملاءالصيانه';
+      if (n.includes('خدمه') && n.includes('عملاء')) return 'قسمخدمعملاءالصيانه';
+      if (n.includes('فني') && n.includes('صيان')) return 'قسمالخدماتفنيصيانة';
+      if (n.includes('مخزون') && n.includes('سيارات')) return 'قسممخزونالسيارات';
+
+      if (n.includes('نظاف')||n.includes('استقبال')){
+        if (n.includes('مدينه')) return 'قسمالنظافهوالاستقبالالمدينه';
+        if (n.includes('جده')) return 'قسمالنظافهوالاستقبالجده';
+        if (n.includes('رياض1')) return 'قسمالنظافهوالاستقبالالرياض1';
+        if (n.includes('رياض2')) return 'قسمالنظافهوالاستقبالالرياض2';
+        if (n.includes('رياض')) return 'قسمالنظافهوالاستقبالالرياض';
+        return 'قسمالاستقبالوالنظافه';
+      }
+
+      if (n.includes('فرع') && n.includes('جده')) return 'ادارهفرعجده';
+      if (n.includes('فرع') && n.includes('رياض')) return 'ادارهفرعرياض';
+      return n;
+    }
+
+    function statusClass(s){
+      if(!s) return 'status-in-progress';
+      if(s.includes('جديد')) return 'status-new';
+      if(s.includes('مغلق')) return 'status-closed';
+      if(s.includes('جاري')) return 'status-in-progress';
+      if(s.includes('مرفوض')) return 'status-rejected';
+      return 'status-in-progress';
+    }
+
+    function showToast(msg, type="info"){
+      const t=document.createElement('div');
+      t.className=`toast show ${type}`;
+      t.textContent=msg;
+      document.body.appendChild(t);
+      setTimeout(()=>t.remove(),3500);
+    }
+
+    /* ========== Global State ========== */
+    let currentUser = null;
+    let allRequests = [];
+    let allEmployees = []; // للتوكيل
+    let scopeMode = 'all'; // all | incoming | outgoing
+
+    /* ========== User bootstrap (from localStorage) ========== */
+    (function initUserFromStorage(){
+      let userData = localStorage.getItem("currentUser");
+
+      // لو ما فيه currentUser استخدم sevens_user
+      if (!userData) {
+        const fallback = localStorage.getItem("sevens_user");
+        if (fallback) {
+          userData = fallback;
+          localStorage.setItem("currentUser", fallback);
+        }
+      }
+
+      if (!userData) {
+        window.location.href = "Login.html";
+        return;
+      }
+
+      try {
+        currentUser = JSON.parse(userData);
+      } catch(e) {
+        console.error("Failed to parse userData:", e);
+        localStorage.removeItem("currentUser");
+        localStorage.removeItem("sevens_user");
+        window.location.href = "Login.html";
+        return;
+      }
+
+      normalizeUserRole();
+
+      // توحيد التخزين
+      const serialized = JSON.stringify(currentUser);
+      localStorage.setItem("currentUser", serialized);
+      localStorage.setItem("sevens_user", serialized);
+    })();
+
+    function normalizeUserRole(){
+      if (!currentUser) return;
+      let role = currentUser.role ? currentUser.role.toString().toLowerCase() : "";
+
+      const norm = str => (str || '')
+        .toString()
+        .replace(/[إأآا]/g, 'ا')
+        .replace(/ة/g,'ه')
+        .replace(/\s+/g,'');
+
+      if (!["admin","hr","general_manager","manager","employee"].includes(role)) {
+        const r = norm(currentUser.role);
+        if (r.includes("عام")) role = "general_manager";
+        else if (r.includes("قسم") || r.includes("مديرقسم")) role = "manager";
+        else if (r.includes("موظف")) role = "employee";
+        else role = "employee";
+      }
+
+      currentUser.role = role;
+    }
+
+    function getManagerAllDepartments() {
+      if (!currentUser) return [];
+      const main = normalizeArabicJS(currentUser.department || '');
+      const extra_raw = currentUser.extra_departments;
+
+// نحول أي قيمة إلى مصفوفة بطريقة آمنة
+let extra = [];
+
+if (Array.isArray(extra_raw)) {
+    extra = extra_raw;
+} else if (typeof extra_raw === "string" && extra_raw.includes(",")) {
+    extra = extra_raw.split(",");
+} else if (typeof extra_raw === "string" && extra_raw.trim() !== "") {
+    extra = [extra_raw];
+}
+
+// تنسيق الأقسام
+extra = extra.map(d => normalizeArabicJS((d || "").trim())).filter(Boolean);
+
+      return [main, ...extra];
+    }
+
+    /* ========== Session Check with backend ========== */
+    async function sessionCheck() {
+      try {
+        const res = await fetch("/api/auth/session_check");
+        const data = await res.json();
+
+        if (!data.valid) {
+          localStorage.removeItem("sevens_user");
+          localStorage.removeItem("currentUser");
+          window.location.href = "Login.html";
+          return;
+        }
+
+        if (data.user) {
+          currentUser = data.user;
+          normalizeUserRole();
+          const serialized = JSON.stringify(currentUser);
+          localStorage.setItem("currentUser", serialized);
+          localStorage.setItem("sevens_user", serialized);
+
+          const uw = document.getElementById("userWelcome");
+          if (uw) uw.textContent = `مرحباً، ${currentUser.name} (${currentUser.department})`;
+        }
+      } catch (e) {
+        console.error("Session error:", e);
+      }
+    }
+
+    // فحص الجلسة مباشرة وكل 20 ثانية
+    sessionCheck();
+    setInterval(sessionCheck, 20000);
+
+    /* ========== Tabs ========== */
+    function openTab(id, btn){
+      document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+      document.getElementById(id).classList.add('active');
+      document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+      btn.classList.add('active');
+    }
+
+    /* ========== DOMContentLoaded bootstrap ========== */
+    document.addEventListener('DOMContentLoaded', async () => {
+      if (!currentUser) return;
+
+      const uw = document.getElementById('userWelcome');
+      if (uw) {
+        uw.textContent = `مرحباً، ${currentUser.name} (${currentUser.department})`;
+      }
+
+      const rn = normalizeArabicJS(currentUser.role || '');
+      if (currentUser.role !== 'general_manager' && currentUser.role !== 'admin') {
+        console.warn('تحذير: المستخدم ليس مدير عام – سيتم السماح مؤقتًا لأغراض الاختبار.');
+      }
+
+      // إخفاء أزرار النطاق عن المدير العام (يشاهد كل الطلبات)
+      if (currentUser.role === 'general_manager') {
+        const sc = document.querySelector('.scope-switch');
+        if (sc) sc.style.display = 'none';
+      }
+
+      // تعبئة الأقسام
+      await fillDepartmentsUI();
+
+      // جلب جميع الموظفين للتوكيل
+      await loadAllEmployees();
+
+      // تحميل الطلبات
+      await loadRequests();
+
+      // تحديث تلقائي للطلبات كل 30 ثانية (مع مراعاة النوافذ المفتوحة)
+      setInterval(async () => {
+        const mf=document.getElementById('fileViewerModal');
+        const nf=document.getElementById('newRequestModal');
+        const tm=document.getElementById('ticketDetailsModal');
+        const busy = (mf && mf.style.display==='flex') ||
+                     (nf && nf.style.display==='flex') ||
+                     (tm && tm.style.display==='flex');
+        if(busy) return;
+        await reloadSelected();
+      }, 30000);
+
+      // تحديث محادثة التذكرة المفتوحة كل 10 ثوانٍ
+      setInterval(() => {
+        const tm=document.getElementById('ticketDetailsModal');
+        if(tm && tm.style.display==='flex'){
+          const reqid=tm.dataset.reqid;
+          if(reqid) loadChatMessages(reqid);
+        }
+      }, 10000);
+
+      // ربط نموذج الطلب الجديد
+      const newReqForm = document.getElementById('newRequestForm');
+      if (newReqForm) {
+        newReqForm.addEventListener('submit', handleNewRequestSubmit);
+      }
+
+      // ربط مرفق الدردشة
+      const chatAttach = document.getElementById('chatAttachment');
+      if (chatAttach) {
+        chatAttach.addEventListener('change',(e)=>{
+          const f = e.target.files[0];
+          document.getElementById('selectedFileLabel').textContent = f ? `📎 ${f.name}` : '';
+        });
+      }
+    });
+
+    /* ========== Load Departments UI ========== */
+    async function fillDepartmentsUI(){
+      try {
+        const res = await fetch("/api/get_departments");
+        const data = await res.json();
+        const departments = data.departments || [];
+
+        // القائمة المنسدلة في الفلاتر
+        const cont = document.getElementById("deptOptions");
+        if (cont) {
+          cont.innerHTML = "";
+
+          // خيار "جميع الأقسام"
+          const allDiv = document.createElement("div");
+          allDiv.className = "dropdown-item all-depts";
+          allDiv.textContent = "جميع الأقسام";
+          allDiv.onclick = () => selectDept("جميع الأقسام");
+          cont.appendChild(allDiv);
+
+          departments.forEach(dep => {
+            const d = document.createElement("div");
+            d.className = "dropdown-item";
+            d.textContent = dep;
+            d.onclick = () => selectDept(dep);
+            cont.appendChild(d);
+          });
+        }
+
+        // قسم التصدير
+        const exp = document.getElementById("exportDept");
+        if (exp) {
+          exp.innerHTML = "";
+          departments.forEach(dep => {
+            const o = document.createElement("option");
+            o.value = dep;
+            o.textContent = dep;
+            exp.appendChild(o);
+          });
+        }
+
+        // رفع طلب جديد
+        const trg = document.getElementById("targetDept");
+        if (trg) {
+          trg.innerHTML = "";
+          const ph = document.createElement("option");
+          ph.value = "";
+          ph.textContent = "اختر القسم";
+          trg.appendChild(ph);
+
+          departments.forEach(dep => {
+            const o = document.createElement("option");
+            o.value = dep;
+            o.textContent = dep;
+            trg.appendChild(o);
+          });
+        }
+
+        // إضافة / تعديل مستخدم (لو موجود في نفس الصفحة)
+        const userDept = document.getElementById("u_department");
+        if (userDept) {
+          userDept.innerHTML = "";
+          departments.forEach(dep => {
+            const o = document.createElement("option");
+            o.value = dep;
+            o.textContent = dep;
+            userDept.appendChild(o);
+          });
+        }
+
+      } catch (err) {
+        console.error("Error loading departments:", err);
+      }
+    }
+
+    /* ========== Load all employees for delegation ========== */
+    async function loadAllEmployees(){
+      try {
+        // عدّل مسار الـ API لو تستخدم اسم مختلف في backend
+        const res = await fetch("/api/get_employees");
+        const data = await res.json();
+
+        if (Array.isArray(data)) {
+          allEmployees = data;
+        } else if (Array.isArray(data.employees)) {
+          allEmployees = data.employees;
+        } else {
+          allEmployees = [];
+        }
+      } catch (e) {
+        console.error("Error loading employees:", e);
+        allEmployees = [];
+      }
+    }
+
+    /* ===== Scope toggle ===== */
+    function setScope(mode, btn){
+      scopeMode = mode;
+      document.querySelectorAll('.scope-switch .toggle-btn').forEach(b=>b.classList.remove('active'));
+      btn.classList.add('active');
+      renderRequests();
+    }
+
+    /* ========== Requests ========== */
+    async function loadRequests(){
+      const c=document.getElementById('requestsContainer');
+      if (c) c.innerHTML='<div class="no-requests">جارٍ التحميل...</div>';
+
+      try{
+        const res=await fetch('/api/get_requests',{
+          method:'POST',
+          headers:{'Content-Type':'application/json'},
+          body: JSON.stringify({
+            role: currentUser.role,
+            department: getManagerAllDepartments()
+          })
+        });
+        const data=await res.json();
+        allRequests = Array.isArray(data) ? data : [];
+        renderRequests();
+      }catch(e){
+        console.error('loadRequests error:',e);
+        if (c) c.innerHTML='<div class="no-requests">حدث خطأ أثناء تحميل الطلبات</div>';
+      }
+    }
+
+    async function reloadSelected(){
+      await loadRequests();
+    }
+
+    function renderRequests(){
+      const c=document.getElementById('requestsContainer');
+      if (!c) return;
+
+      const deptSel=(document.getElementById('deptSelectedText')?.textContent || '').trim() || 'جميع الأقسام';
+      const statSel=document.getElementById('statusFilter')?.value || '';
+      const q=(document.getElementById('textSearch')?.value || '').toLowerCase().trim();
+
+      let list = allRequests.slice();
+
+      // scope filter بالنسبة لقسم المدير الحالي (يُطبّق فقط على غير المدير العام)
+      if (currentUser.role !== 'general_manager') {
+        if (scopeMode === 'incoming') {
+          const allowed = getManagerAllDepartments();
+          list = list.filter(r =>
+            allowed.includes(normalizeArabicJS(r['القسم المستلم'] || ''))
+          );
+        } else if (scopeMode === 'outgoing') {
+          const allowed = getManagerAllDepartments();
+          list = list.filter(r =>
+            allowed.includes(normalizeArabicJS(r['القسم المرسل'] || ''))
+          );
+        }
+      }
+
+      // department filter (by receiver فقط لتوحيد المنطق)
+      if (deptSel !== 'جميع الأقسام') {
+        const d = normalizeArabicJS(deptSel);
+        list = list.filter(r => normalizeArabicJS(r['القسم المستلم'] || '') === d);
+      }
+
+      // status filter
+      if(statSel) {
+        list = list.filter(r => (r['الحالة']||'').includes(statSel));
+      }
+
+      // text search
+      if(q){
+        list = list.filter(r=>{
+          return [r['العنوان'],r['الوصف'],r['اسم المرسل'],r['اسم المستلم'],r['القسم المرسل'],r['القسم المستلم']]
+
+            .map(x=>(x||'').toString().toLowerCase())
+            .some(v=>v.includes(q));
+        });
+      }
+
+      if(!list.length){
+        c.innerHTML='<div class="no-requests">لا توجد طلبات.</div>';
+        return;
+      }
+
+      const managerAllowedDeps = getManagerAllDepartments();
+
+      c.innerHTML = list.map(req=>{
+        const status=(req['الحالة']||'').trim();
+        const fileName=req['الملف']||req['المرفق']||'';
+
+        // صلاحية التعديل: المدير العام فقط وعلى طلبات قسمه/أقسامه الإضافية
+        let canUpdate = false;
+        if (currentUser.role === 'general_manager') {
+          canUpdate = managerAllowedDeps.includes(
+            normalizeArabicJS(req['القسم المستلم'] || '')
+          );
+        }
+
+        // التوكيل مسموح فقط للمدير العام وعلى الطلبات الواردة لأقسامه
+        let delegateOptions = [];
+        if (
+          currentUser.role === 'general_manager' &&
+          managerAllowedDeps.includes(normalizeArabicJS(req['القسم المستلم'] || ''))
+        ) {
+          const recvStd = normalizeDepartmentJS(req['القسم المستلم']||'');
+          delegateOptions = allEmployees.filter(e =>
+            normalizeDepartmentJS(e['القسم']) === recvStd &&
+            ['موظف','مدير قسم'].includes(e['الصلاحية'])
+          );
+        }
+
+        return `
+          <div class="request-card" data-id="${req['رقم الطلب']||''}">
+            <div class="status-header ${statusClass(status)}"></div>
+            <div class="card-content">
+              <div style="display:flex;justify-content:space-between;color:#607d8b;font-size:13px">
+                <div>#${req['رقم الطلب']||''}</div>
+                <div>${req['التاريخ']||''}</div>
+              </div>
+
+              <div class="request-title">${req['العنوان']||''}</div>
+              <div style="color:#607d8b;margin:6px 0;max-height:64px;overflow:hidden">${req['الوصف']||''}</div>
+
+              <div class="request-meta">
+                <div><i class="fas fa-user"></i> المرسل: ${req['اسم المرسل']||'-'} (${req['القسم المرسل']||'-'})</div>
+                <div><i class="fas fa-user-check"></i> المستلم: ${req['اسم المستلم']||'-'} (${req['القسم المستلم']||'-'})</div>
+              </div>
+
+              <div style="margin:8px 0;display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+                <span class="status-badge ${statusClass(status)}">${status||'-'}</span>
+                <span style="color:#78909c">آخر تحديث: ${req['آخر تحديث بواسطة']||'-'}</span>
+              </div>
+
+              <div style="margin:8px 0;">
+                ${
+                  fileName
+                  ? `<button class="btn btn-outline" onclick="openFileViewer('/uploads/${fileName}')"><i class='fas fa-paperclip'></i> عرض المرفق</button>`
+                  : `<span style="color:#9e9e9e"><i class='fas fa-paperclip'></i> لا يوجد مرفق</span>`
+                }
+              </div>
+
+              <div class="update-section">
+                ${
+                  canUpdate
+                  ? `
+                    <select class="status-select" onchange="updateRequestStatus('${req['رقم الطلب']}', this.value)">
+                      <option value="">تغيير الحالة</option>
+                      <option value="جديد">جديد</option>
+                      <option value="قيد المراجعة">قيد المراجعة</option>
+                      <option value="جاري التنفيذ">جاري التنفيذ</option>
+                      <option value="معلق">معلق</option>
+                      <option value="مغلق">مغلق</option>
+                    </select>
+                  `
+                  : `<select class="status-select" disabled><option>لا يمكن التعديل</option></select>`
+                }
+                <span id="timer-${req['رقم الطلب']}" class="timer-text">${(req['الوقت']||'')||'00:00:00'}</span>
+              </div>
+
+              ${
+                delegateOptions.length
+                ? `
+                <div class="delegate-section" style="margin-top:10px;">
+                  <select class="form-control" onchange="delegateRequest('${req['رقم الطلب']}', this.value)">
+                    <option value="">توكيل إلى...</option>
+                    ${delegateOptions.map(e=>`<option value="${e['الاسم']}">${e['الاسم']} — ${e['الصلاحية']}</option>`).join('')}
+                  </select>
+                </div>
+                `
+                : ''
+              }
+
+              <div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap">
+                <button class="btn btn-outline" onclick="openTicketDetails('${req['رقم الطلب']}')"><i class="fas fa-comments"></i> التفاصيل والدردشة</button>
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      // timers after render
+      setTimeout(()=>{
+        list.forEach(req=>{
+          const status=(req['الحالة']||'').trim();
+          const timeStr=(req['الوقت']||'00:00:00').trim();
+          const [h,m,s]=timeStr.split(':').map(Number);
+          const base=((h||0)*3600)+((m||0)*60)+(s||0);
+          if(status==='جاري التنفيذ') startTimer(req['رقم الطلب'], base);
+          else if(status==='معلق') pauseTimer(req['رقم الطلب']);
+        });
+      },200);
+    }
+
+    /* ========== Department dropdown handlers ========== */
+    function toggleDeptDropdown(){
+      const dd = document.getElementById('deptDropdown');
+      if (dd) dd.classList.toggle('active');
+    }
+
+    function selectDept(name){
+      const span = document.getElementById('deptSelectedText');
+      if (span) span.textContent = name || 'جميع الأقسام';
+      const dd = document.getElementById('deptDropdown');
+      if (dd) dd.classList.remove('active');
+      renderRequests();
+    }
+
+    function filterDeptList(){
+      const input=(document.getElementById('deptSearch')?.value || '').toLowerCase();
+      document.querySelectorAll('#deptOptions .dropdown-item').forEach(el=>{
+        const keep = el.textContent.toLowerCase().includes(input) || el.classList.contains('all-depts');
+        el.style.display = keep ? 'block' : 'none';
+      });
+    }
+
+    window.addEventListener('click', (e)=>{
+      const dd=document.getElementById('deptDropdown');
+      if(dd && !dd.contains(e.target)) dd.classList.remove('active');
+    });
+
+    /* ========== File viewer generic ========== */
+    function openFileViewer(url){
+      const body=document.getElementById('fileViewerBody');
+      if (!body) return;
+      body.innerHTML='';
+
+      const ext=url.split('.').pop().toLowerCase();
+      if(['jpg','jpeg','png','gif','webp'].includes(ext))
+        body.innerHTML=`<img src="${url}" style="max-width:100%;border-radius:10px;">`;
+      else if(ext==='pdf')
+        body.innerHTML=`<iframe src="${url}" width="100%" height="520" style="border:none;border-radius:10px;"></iframe>`;
+      else if(['xlsx','xls','docx','doc'].includes(ext))
+        body.innerHTML=`<iframe src="https://view.officeapps.live.com/op/embed.aspx?src=${window.location.origin + url}" width="100%" height="520" frameborder="0"></iframe>`;
+      else
+        body.innerHTML=`<p>لا يمكن عرض هذا النوع مباشرة. <a href="${url}" target="_blank">تحميل</a></p>`;
+
+      const modal = document.getElementById('fileViewerModal');
+      if (modal) modal.style.display='flex';
+    }
+
+    function closeFileViewer(e){
+      const modal=document.getElementById('fileViewerModal');
+      if(!modal) return;
+      if(e.target===modal || e.target.classList.contains('close-btn')){
+        modal.style.display='none';
+        const body=document.getElementById('fileViewerBody');
+        if (body) body.innerHTML='';
+      }
+    }
+
+    /* ========== Timers ========== */
+    const timers={};
+    const savedTimes={};
+
+    function startTimer(id, base=0){
+      const el=document.getElementById(`timer-${id}`);
+      if(!el) return;
+
+      let seconds = savedTimes[id] ?? base ?? 0;
+      clearInterval(timers[id]);
+
+      timers[id]=setInterval(()=>{
+        seconds++;
+        savedTimes[id]=seconds;
+        const h=String(Math.floor(seconds/3600)).padStart(2,'0');
+        const m=String(Math.floor((seconds%3600)/60)).padStart(2,'0');
+        const s=String(seconds%60).padStart(2,'0');
+        el.textContent=`${h}:${m}:${s}`;
+
+        if(seconds<300) el.style.background='#e8f5e9';
+        else if(seconds<1800) el.style.background='#fff8e1';
+        else el.style.background='#ffebee';
+      },1000);
+    }
+
+    function pauseTimer(id){
+      if(timers[id]){
+        clearInterval(timers[id]);
+        timers[id]=null;
+      }
+    }
+
+    function stopTimer(id){
+      if(timers[id]){
+        clearInterval(timers[id]);
+        delete timers[id];
+      }
+      const el=document.getElementById(`timer-${id}`);
+      const t= el ? el.textContent : '00:00:00';
+      delete savedTimes[id];
+      return t;
+    }
+
+    /* ========== Update status ========== */
+    async function updateRequestStatus(reqId, newStatus){
+      if(!newStatus) return;
+
+      const payload={ requestId:reqId, status:newStatus, updater: currentUser.name };
+
+      if(newStatus==='جاري التنفيذ') startTimer(reqId);
+      if(newStatus==='معلق')      pauseTimer(reqId);
+      if(newStatus==='مغلق')      payload.duration = stopTimer(reqId);
+
+      try{
+        const res=await fetch('/api/update_request_status',{
+          method:'POST',
+          headers:{'Content-Type':'application/json'},
+          body:JSON.stringify(payload)
+        });
+        const data=await res.json();
+        if(data.success){
+          showToast('تم تحديث الحالة ✅','success');
+          await reloadSelected();
+        } else {
+          showToast('فشل التحديث ❌','error');
+        }
+      }catch(e){
+        console.error(e);
+        showToast('فشل الاتصال بالخادم','error');
+      }
+    }
+
+    /* ========== Delegate ========== */
+    async function delegateRequest(reqId, delegateName){
+      if(!delegateName) return;
+      if(!confirm(`توكيل الطلب ${reqId} إلى ${delegateName}؟`)) return;
+
+      try{
+        const res=await fetch('/api/delegate_request',{
+          method:'POST',
+          headers:{'Content-Type':'application/json'},
+          body:JSON.stringify({
+            requestId:reqId,
+            delegate:delegateName,
+            delegatedBy: currentUser.name
+          })
+        });
+        const data=await res.json();
+        if(data.success){
+          showToast(`تم التوكيل إلى ${delegateName} ✅`,'success');
+          reloadSelected();
+        } else {
+          showToast('فشل في عملية التوكيل ❌','error');
+        }
+      }catch(e){
+        console.error(e);
+        showToast('فشل الاتصال بالخادم','error');
+      }
+    }
+
+    /* ========== New Request Modal ========== */
+    function openNewRequestModal(){
+      const modal=document.getElementById('newRequestModal');
+      if (!modal) return;
+      modal.style.display='flex';
+      setTimeout(()=>{ document.addEventListener('click', handleOutsideClick); },200);
+    }
+
+    function closeNewRequestModal(){
+      const modal=document.getElementById('newRequestModal');
+      if (!modal) return;
+      modal.style.display='none';
+      document.removeEventListener('click', handleOutsideClick);
+    }
+
+    function handleOutsideClick(e){
+      const modal=document.getElementById('newRequestModal');
+      if (!modal) return;
+      const content=modal.querySelector('.request-modal-content');
+      const openButton=document.querySelector('.btn.btn-primary');
+      if(modal.style.display==='flex' &&
+         !content.contains(e.target) &&
+         e.target!==openButton &&
+         !openButton.contains(e.target)){
+        closeNewRequestModal();
+      }
+    }
+
+    async function handleNewRequestSubmit(e){
+      e.preventDefault();
+      const title=document.getElementById('requestTitle').value.trim();
+      const desc=document.getElementById('requestDesc').value.trim();
+      const target=document.getElementById('targetDept').value.trim();
+      const fileInput=document.getElementById('requestFile');
+
+      if(!title||!desc||!target){
+        alert('يرجى تعبئة كل الحقول');
+        return;
+      }
+
+      const fd=new FormData();
+      fd.append('title',title);
+      fd.append('description',desc);
+      fd.append('targetDept',target);
+      fd.append('senderDept', currentUser.department || '');
+      fd.append('senderName', currentUser.name || '');
+      if(fileInput && fileInput.files.length>0){
+        fd.append('file', fileInput.files[0]);
+      }
+
+      try{
+        const res=await fetch('/api/create_request',{method:'POST', body:fd});
+        const data=await res.json();
+        if(data.success){
+          showToast('تم إرسال الطلب ✅','success');
+          closeNewRequestModal();
+          e.target.reset();
+          reloadSelected();
+        } else {
+          alert('فشل الإرسال: ' + (data.message||'غير معروف'));
+        }
+      }catch(err){
+        console.error(err);
+        alert('تعذر الاتصال بالخادم');
+      }
+    }
+
+    /* ========== Ticket details + chat ========== */
+    async function openTicketDetails(reqId){
+      try{
+        // تصفير عداد الإشعارات لهذه التذكرة
+        window.lastChatCount = window.lastChatCount || {};
+        window.lastChatCount[reqId] = 0;
+        updateChatBadge(0);
+
+        const ticket = allRequests.find(r=> (r['رقم الطلب']||'')===reqId);
+        if(!ticket){
+          alert('لم يتم العثور على تفاصيل الطلب');
+          return;
+        }
+
+        document.getElementById('ticketTitle').textContent=`تفاصيل الطلب #${reqId}`;
+        document.getElementById('ticketInfo').innerHTML=`
+          <p><strong>العنوان:</strong> ${ticket['العنوان']||''}</p>
+          <p><strong>الوصف:</strong> ${ticket['الوصف']||''}</p>
+          <p><strong>القسم المرسل:</strong> ${ticket['القسم المرسل']||''}</p>
+          <p><strong>القسم المستلم:</strong> ${ticket['القسم المستلم']||''}</p>
+          <p><strong>الحالة:</strong> ${ticket['الحالة']||''}</p>
+        `;
+
+        await loadChatMessages(reqId);
+
+        const modal=document.getElementById('ticketDetailsModal');
+        modal.style.display='flex';
+        modal.dataset.reqid=reqId;
+
+        // التحكم في عرض خانة الإدخال حسب صلاحية المدير العام وقسم الطلب
+        const chatArea = document.getElementById('chatInputArea');
+        if (chatArea) {
+          const allowed = getManagerAllDepartments();
+          const isHisDept = allowed.includes(
+            normalizeArabicJS(ticket['القسم المستلم'] || '')
+          );
+
+          if (currentUser.role === 'general_manager' && !isHisDept) {
+            chatArea.style.display = 'none';
+          } else {
+            chatArea.style.display = 'flex';
+          }
+        }
+      }catch(e){
+        console.error(e);
+        alert('خطأ أثناء تحميل التفاصيل');
+      }
+    }
+
+    function closeTicketDetails(e){
+      const modal=document.getElementById('ticketDetailsModal');
+      if(!modal) return;
+      if(e.target===modal || e.target.classList.contains('close-btn')){
+        modal.style.display='none';
+        document.getElementById('chatMessages').innerHTML='';
+      }
+    }
+
+    async function loadChatMessages(reqId){
+      try{
+        const res=await fetch(`/api/chat_get/${reqId}`);
+        const msgs=await res.json();
+        const box=document.getElementById('chatMessages');
+
+        if(!Array.isArray(msgs)||msgs.length===0){
+          box.innerHTML='<div style="text-align:center;color:#78909c;">لا توجد رسائل بعد 💬</div>';
+          return;
+        }
+
+        box.innerHTML = msgs.map(m=>{
+          const sender  = m.sender  || m['المرسل']  || 'مجهول';
+          const message = m.message || m['الرسالة'] || '';
+          const file    = m.file    || m['الملف']   || '';
+          const time    = m.time    || m['الوقت']   || '';
+          const mine = normalizeArabicJS(sender||'')===normalizeArabicJS(currentUser.name||'');
+          const attach = file
+            ? `<div class="chat-attachment"><a href="/chat_uploads/${file}" target="_blank"><i class='fas fa-paperclip'></i> ${file}</a></div>`
+            : '';
+          return `
+            <div class="chat-msg ${mine?'me':'other'}">
+              <div class="chat-meta">
+                <span>${sender}</span>
+                <span>${time}</span>
+              </div>
+              <div>${(message||'').toString().replace(/</g,'&lt;').replace(/>/g,'&gt;')}</div>
+              ${attach}
+            </div>
+          `;
+        }).join('');
+
+        // إشعار رسائل جديدة عند ورود ردود جديدة موجهة لقسم المدير الحالي
+        if (!window.lastChatCount) window.lastChatCount = {};
+        if (!window.lastChatCount[reqId]) window.lastChatCount[reqId] = 0;
+
+        if (msgs.length > window.lastChatCount[reqId]) {
+          const newCount = msgs.length - window.lastChatCount[reqId];
+          const ticket = allRequests.find(r => (r['رقم الطلب'] || '') === reqId);
+          if (ticket && normalizeArabicJS(ticket['القسم المستلم']) === normalizeArabicJS(currentUser.department)) {
+            showToast(`💬 وصلك ${newCount} رسالة جديدة في الطلب #${reqId}`, 'info');
+            updateChatBadge(newCount);
+            blinkChatIcon();
+          }
+        }
+        window.lastChatCount[reqId] = msgs.length;
+
+        box.scrollTop = box.scrollHeight;
+      }catch(e){
+        console.error(e);
+        document.getElementById('chatMessages').innerHTML='<div style="text-align:center;color:#999">فشل تحميل الرسائل.</div>';
+      }
+    }
+
+    async function sendChatMessage(){
+      const modal = document.getElementById('ticketDetailsModal');
+      if (!modal) return;
+      const reqId = modal.dataset.reqid;
+
+      const ticket = allRequests.find(r => (r['رقم الطلب'] || '') === reqId);
+      if (currentUser.role === 'general_manager' && ticket) {
+        const allowed = getManagerAllDepartments();
+        const isHisDept = allowed.includes(
+          normalizeArabicJS(ticket['القسم المستلم'] || '')
+        );
+        if (!isHisDept) {
+          showToast('❌ لا يمكنك إرسال رسائل في طلب خارج قسمك','error');
+          return;
+        }
+      }
+
+      const text = document.getElementById('chatInput').value.trim();
+      const fileInput = document.getElementById('chatAttachment');
+
+      if(!text && (!fileInput || !fileInput.files.length)){
+        showToast('أدخل رسالة أو أرفق ملفًا','info');
+        return;
+      }
+
+      const fd = new FormData();
+      fd.append('request_id', reqId);
+      fd.append('sender', currentUser.name || '');
+      fd.append('department', currentUser.department || '');
+      if(text) fd.append('message', text);
+      if(fileInput && fileInput.files.length>0) fd.append('file', fileInput.files[0]);
+
+      try{
+        const res = await fetch('/api/chat_send_file', { method:'POST', body:fd });
+        const data = await res.json();
+        if(data.success){
+          document.getElementById('chatInput').value='';
+          if (fileInput) fileInput.value='';
+          document.getElementById('selectedFileLabel').textContent='';
+          await loadChatMessages(reqId);
+          showToast('تم إرسال الرسالة ✅','success');
+        } else {
+          showToast('فشل الإرسال ❌','error');
+        }
+      }catch(e){
+        console.error(e);
+        showToast('تعذر الاتصال بالخادم','error');
+      }
+    }
+
+    /* ===== Export ===== */
+    async function exportRequests(){
+      const dept=document.getElementById('exportDept')?.value || '';
+      if(!dept){
+        alert('اختر القسم للتصدير');
+        return;
+      }
+      const start=document.getElementById('startDate')?.value || null;
+      const end=document.getElementById('endDate')?.value || null;
+
+      const res=await fetch('/api/export_requests',{
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({department:dept,start_date:start,end_date:end})
+      });
+      const data=await res.json();
+      if(data.success && data.file){
+        window.location.href=`/download/${data.file}`;
+      } else {
+        alert(data.message || '❌ فشل التصدير');
+      }
+    }
+
+    /* ===== Toast badge for chat ===== */
+    function updateChatBadge(count) {
+      let badge = document.querySelector('.chat-badge');
+      if (!badge) {
+        badge = document.createElement('div');
+        badge.className = 'chat-badge';
+        document.body.appendChild(badge);
+      }
+      if (count > 0) {
+        badge.textContent = count > 9 ? '9+' : count;
+        badge.style.display = 'flex';
+      } else {
+        badge.style.display = 'none';
+      }
+    }
+
+    function blinkChatIcon() {
+      const badge = document.querySelector('.chat-badge');
+      if (!badge) return;
+      badge.classList.add('blink');
+      setTimeout(() => badge.classList.remove('blink'), 1500);
+    }
+
+    /* ===== Logout ===== */
+    function logout(){
+      if(confirm('تأكيد تسجيل الخروج؟')){
+        localStorage.removeItem('currentUser');
+        localStorage.removeItem('sevens_user');
+        location.href='Login.html';
+      }
+    }
+  </script>
+</body>
+</html>

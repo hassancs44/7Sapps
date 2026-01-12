@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>بوابة SEVENS</title>
+
+  <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+
+  <style>
+    body {
+      font-family: 'Tajawal', sans-serif;
+      background: #f6f9ff;
+      margin: 0;
+      padding: 0;
+      min-height: 100vh;
+    }
+
+    .header {
+      background: #1976d2;
+      color: white;
+      padding: 18px;
+      text-align: center;
+      font-size: 23px;
+      font-weight: 700;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.12);
+    }
+
+    .apps-grid {
+      max-width: 1100px;
+      margin: 50px auto;
+      padding: 20px;
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+      gap: 30px;
+      justify-items: center;
+    }
+
+    .app-item {
+      width: 130px;
+      text-align: center;
+      cursor: pointer;
+      transition: 0.25s ease;
+    }
+
+    .app-item:hover {
+      transform: translateY(-4px);
+    }
+
+    .icon-wrapper {
+      background: white;
+      width: 85px;
+      height: 85px;
+      border-radius: 16px;
+      margin: auto;
+      box-shadow: 0 5px 14px rgba(0,0,0,0.10);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-size: 32px;
+      color: #1976d2;
+      transition: 0.25s ease;
+    }
+
+    .app-item:hover .icon-wrapper {
+      box-shadow: 0 7px 20px rgba(0,0,0,0.16);
+    }
+
+    .app-name {
+      margin-top: 10px;
+      font-size: 15px;
+      font-weight: 700;
+      color: #0b3c85;
+    }
+
+    .hidden { display: none !important; }
+  </style>
+</head>
+
+<body>
+
+  <div class="header">بوابة أنظمة SEVENS</div>
+
+  <div class="apps-grid">
+
+    <!-- نظام الطلبات -->
+    <div id="app-requests" class="app-item hidden">
+      <div class="icon-wrapper">
+        <i class="fas fa-clipboard-list"></i>
+      </div>
+      <div class="app-name">نظام الطلبات</div>
+    </div>
+
+    <!-- مكتب التأجير -->
+    <div id="app-rental" class="app-item hidden">
+      <div class="icon-wrapper">
+        <i class="fas fa-car-side"></i>
+      </div>
+      <div class="app-name">مكتب التأجير</div>
+    </div>
+
+    <!-- الصيانة -->
+    <div id="app-maintenance" class="app-item hidden">
+      <div class="icon-wrapper">
+        <i class="fas fa-wrench"></i>
+      </div>
+      <div class="app-name">الصيانة</div>
+    </div>
+
+    <!-- المخزون -->
+    <div id="app-stock" class="app-item hidden">
+      <div class="icon-wrapper">
+        <i class="fas fa-boxes-stacked"></i>
+      </div>
+      <div class="app-name">المخزون</div>
+    </div>
+<!-- المستودع والعهد -->
+<div id="app-warehouse" class="app-item hidden">
+  <div class="icon-wrapper">
+    <i class="fas fa-warehouse"></i>
+  </div>
+  <div class="app-name">المستودع والعهد</div>
+</div>
+
+  </div>
+
+<script>
+  // ===========================
+  // تحميل بيانات المستخدم من LocalStorage
+  // ===========================
+  const user = JSON.parse(localStorage.getItem("sevens_user") || "{}");
+
+  // دور المستخدم (جاينا من الباك اند بصيغة: admin, hr, manager, general_manager, employee)
+  const role = String(user.role || "").toLowerCase();
+
+  // ===========================
+  // قراءة عمود apps من قاعدة البيانات
+  // مثال في Excel:
+  // apps = requests,rental,maintenance,stock
+  // ===========================
+  let appsRaw = String(user.apps || "").toLowerCase();
+
+  // توحيد الفواصل (العربية ، والإنجليزية , و ;) إلى فاصلة إنجليزية
+  appsRaw = appsRaw.replace(/[،;]/g, ",");
+  // إزالة المسافات
+  appsRaw = appsRaw.replace(/\s+/g, "");
+
+  // تحويل النص إلى مصفوفة أنظمة
+  const appsList = appsRaw
+    .split(",")
+    .map(a => a.trim())
+    .filter(a => a.length > 0);
+
+  // دالة تساعدنا نعرف هل عنده نظام معيّن في عمود apps
+  function hasApp(key) {
+    return appsList.includes(String(key || "").toLowerCase());
+  }
+
+  // ===========================
+  // كشف الأنظمة حسب عمود apps
+  // ===========================
+
+  // الأدمن يشوف كل الأيقونات دائماً
+  if (role.includes("admin") || role.includes("ادمن")) {
+    ["app-requests", "app-rental", "app-maintenance", "app-stock", "app-warehouse"].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.classList.remove("hidden");
+    });
+  } else {
+    // نظام الطلبات
+    if (hasApp("requests")) {
+      const el = document.getElementById("app-requests");
+      if (el) el.classList.remove("hidden");
+    }
+
+    // مكتب التأجير
+    if (hasApp("rental")) {
+      const el = document.getElementById("app-rental");
+      if (el) el.classList.remove("hidden");
+    }
+
+    // الصيانة
+    if (hasApp("maintenance")) {
+      const el = document.getElementById("app-maintenance");
+      if (el) el.classList.remove("hidden");
+    }
+
+    // المخزون
+    if (hasApp("stock")) {
+      const el = document.getElementById("app-stock");
+      if (el) el.classList.remove("hidden");
+    }
+
+    // المستودع + العهد
+if (hasApp("warehouse")) {
+  const el = document.getElementById("app-warehouse");
+  if (el) el.classList.remove("hidden");
+}
+
+  }
+
+  // ===========================
+  // التوجيه عند الضغط على الأيقونات
+  // ===========================
+
+  const appReq = document.getElementById("app-requests");
+  if (appReq) {
+    appReq.addEventListener("click", () => {
+      // نستخدم role القادم من الباك اند
+      if (role.includes("admin")) return window.location.href = "Admin.html";
+      if (role.includes("manager")) return window.location.href = "DepartmentManagerPage.html";
+      if (role.includes("general_manager") || role.includes("generalmanager")) return window.location.href = "GeneralManager.html";
+      if (role.includes("hr")) return window.location.href = "HrPage.html";
+
+      return window.location.href = "EmployeePage.html";
+    });
+  }
+
+  const appRental = document.getElementById("app-rental");
+  if (appRental) {
+    appRental.addEventListener("click", () => {
+      window.location.href = "rental.html";
+    });
+  }
+
+  const appMaint = document.getElementById("app-maintenance");
+  if (appMaint) {
+    appMaint.addEventListener("click", () => {
+      window.location.href = "maintenance.html";
+    });
+  }
+
+  const appStock = document.getElementById("app-stock");
+  if (appStock) {
+    appStock.addEventListener("click", () => {
+      // يفتح نظام المخزون في تبويب جديد (Streamlit)
+      window.open("https://sevensstore.streamlit.app/", "_blank");
+    });
+  }
+
+    const appWarehouse = document.getElementById("app-warehouse");
+if (appWarehouse) {
+  appWarehouse.addEventListener("click", () => {
+    window.location.href = "/core";
+  });
+}
+
+</script>
+</body>
+</html>

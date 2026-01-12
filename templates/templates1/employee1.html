@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>STOR7S | الموظف</title>
+
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&display=swap');
+body{font-family:Tajawal;background:#0b1220;color:#fff;margin:0;}
+.topbar{background:#101d36;padding:15px;display:flex;justify-content:space-between;}
+.btn{background:#3b82f6;border:0;padding:10px 15px;border-radius:8px;color:#fff;cursor:pointer;}
+.card{background:#0f1b33;padding:20px;border-radius:12px;margin:10px;}
+input,select,textarea{width:100%;padding:10px;margin-top:5px;border-radius:8px;background:#162544;color:#fff;border:1px solid #243b55;}
+table{width:100%;border-collapse:collapse;margin-top:15px;}
+th,td{padding:10px;border-bottom:1px solid rgba(255,255,255,.1);}
+</style>
+</head>
+
+<body>
+
+<div class="topbar">
+  <div> STOR7S | صفحة الموظف</div>
+</div>
+
+<div class="card">
+  <h3>رفع طلب احتياج</h3>
+  <input id="emp_name"   placeholder="اسم الموظف" disabled>
+<input id="emp_dept"   placeholder="القسم" disabled>
+<input id="emp_comp"   placeholder="الشركة" disabled>
+<input id="emp_branch" placeholder="الفرع" disabled>
+  <select id="rtype">
+    <option>مواد</option><option>أجهزة</option>
+    <option>خدمات</option><option>صيانة</option>
+  </select>
+  <textarea id="desc" placeholder="وصف الطلب"></textarea>
+    <!-- 📎 رفع مرفق للطلب -->
+<input type="file" id="file" style="margin-top:10px">
+
+<button class="btn" onclick="uploadAttachment()">📎 رفع مرفق</button>
+<button class="btn" onclick="showAttachments()">📁 عرض مرفقات الطلب</button>
+
+  <button class="btn" onclick="createReq()">رفع الطلب</button>
+</div>
+
+<div class="card">
+  <h3>طلباتي</h3>
+  <table id="orders"><tbody></tbody></table>
+</div>
+<!-- 📦 نافذة عرض المرفقات (بوب أب) -->
+<div id="popup" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;
+background:rgba(0,0,0,.6);backdrop-filter:blur(3px);">
+  <div style="background:#0f1b33;padding:20px;border-radius:12px;width:60%;margin:80px auto;
+  color:white;max-height:70%;overflow:auto;">
+    <h3>📁 المرفقات</h3>
+    <div id="attList"></div>
+      <div id="previewArea" style="margin-top:15px;text-align:center;"></div>
+    <button class="btn" onclick="closePopup()">إغلاق</button>
+  </div>
+</div>
+
+<script>
+const API = "/api/core/employee";
+
+
+async function createReq(){
+  let resUser = await fetch("/api/session");
+if(!resUser.ok){ location.href="/Login.html"; return; }
+let user = await resUser.json();
+
+
+  let form = new FormData();
+  form.append("الرافع", user.name);
+  form.append("الدور", "موظف");
+  form.append("القسم", user.department);
+  form.append("الشركة", user.company);
+  form.append("الفرع", user.branch);
+  form.append("النوع", document.getElementById("rtype").value);
+  form.append("الوصف", document.getElementById("desc").value);
+  form.append("الحالة", "بانتظار اعتماد المدير");
+
+  let res = await fetch("/api/core/employee/create", {
+    method:"POST", body:form
+  });
+
+  let data = await res.json();
+  alert("📌 تم رفع الطلب رقم: " + data["رقم_الطلب"]);
+  loadOrders(); // 🔄 إعادة تحميل الطلبات
+}
+
+
+async function loadOrders(){
+  let resUser = await fetch("/api/session");
+  if(!resUser.ok){ location.href="/Login.html"; return; }
+  let user = await resUser.json();
+
+  let res = await fetch(`${API}/my/${user.name}`);
+  let data = await res.json();
+
+  let rows = data.map(r => `
+    <tr>
+      <td>${r["رقم_الطلب"]}</td>
+      <td>${r["النوع"]}</td>
+      <td>${r["الحالة"]}</td>
+      <td>${r["الوصف"]}</td>
+    </tr>
+  `).join("");
+
+  document.querySelector("#orders tbody").innerHTML = rows;
+}
+
+
+async function uploadAttachment(){
+    let file = document.getElementById("file").files[0]; // ← الاسم الصحيح
+    if(!file){ alert("اختر ملف أولاً"); return; }
+
+    let reqID = prompt("📌 ادخل رقم الطلب لربط المرفق به:");
+    if(!reqID) return;
+
+    let resUser = await fetch("/api/session");
+if(!resUser.ok){ location.href="/Login.html"; return; }
+let user = await resUser.json();
+
+
+    let form = new FormData();
+    form.append("file", file);
+    form.append("رقم_الطلب", reqID);
+    form.append("رافع", user.name);
+    form.append("دور", "موظف");
+    form.append("القسم", user.department);
+    form.append("الشركة", user.company);
+    form.append("الفرع", user.branch);
+
+    let res = await fetch("/api/core/employee/upload", {
+        method:"POST",
+        body: form
+    });
+
+    let data = await res.json();
+    alert(data.msg || "✔️ تم الرفع بنجاح");
+
+    // تحديث العرض مباشرة
+    showAttachments(reqID);
+}
+
+
+async function showAttachments(){
+  let reqID = prompt("ادخل رقم الطلب لعرض المرفقات:");
+  if(!reqID) return;
+
+  let res = await fetch(`${API}/attachments/${reqID}`);
+  let files = await res.json();
+
+  let html = "";
+  if(files.length === 0){
+    html = "<p style='text-align:center;color:#bbb'>لا يوجد مرفقات لهذا الطلب</p>";
+  } else {
+    for(let f of files){
+      html += `
+<div style='padding:10px;border-bottom:1px solid #1a2b4a;margin-bottom:5px;'>
+  <button onclick="previewFile('${f}')" style="background:none;border:0;color:#3b82f6;font-size:16px;cursor:pointer;">
+    📄 ${f}
+  </button>
+</div>`;
+
+    }
+  }
+
+  document.getElementById("attList").innerHTML = html;
+  document.getElementById("popup").style.display = "block";
+}
+
+function closePopup(){
+  document.getElementById("popup").style.display = "none";
+  document.getElementById("previewArea").innerHTML = ""; // يمسح المعاينة
+}
+
+
+function logout(){
+  fetch("/api/logout").then(()=>{
+    location.href="/Login.html";
+  });
+}
+
+
+// 🚀 تحميل بيانات المستخدم تلقائياً بعد تسجيل الدخول
+document.addEventListener("DOMContentLoaded", () => {
+  fetch("/api/session")
+    .then(res => {
+      if(!res.ok) throw "no-session";
+      return res.json();
+    })
+    .then(user => {
+      document.getElementById("emp_name").value   = user.name || "";
+      document.getElementById("emp_dept").value   = user.department || "";
+      document.getElementById("emp_comp").value   = user.company || "";
+      document.getElementById("emp_branch").value = user.branch || "";
+      loadOrders();
+    })
+    .catch(() => location.href="/Login.html");
+});
+
+
+
+   function previewFile(file){
+  const BASE = "/uploads/";
+  let ext = file.toLowerCase();
+  let area = document.getElementById("previewArea");
+
+  if (ext.endsWith(".png") || ext.endsWith(".jpg") || ext.endsWith(".jpeg") || ext.endsWith(".gif")) {
+    area.innerHTML = `
+      <img src="${BASE}${file}"
+           style="max-width:100%;border-radius:10px;border:1px solid #1a2b4a;margin-top:10px;">
+    `;
+  } else {
+    area.innerHTML = `
+      <iframe src="${BASE}${file}"
+              style="width:100%;height:500px;border:none;margin-top:10px;border-radius:10px;"></iframe>
+    `;
+  }
+}
+
+</script>
+</body>
+</html>

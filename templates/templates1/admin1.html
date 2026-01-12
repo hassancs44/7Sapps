@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>STOR7S | الإدارة العامة</title>
+
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&display=swap');
+body{font-family:Tajawal;background:#0b1220;color:#fff;margin:0;}
+.topbar{background:#101d36;padding:15px;display:flex;justify-content:space-between;align-items:center;}
+.btn{background:#3b82f6;border:0;padding:10px 15px;border-radius:8px;color:#fff;cursor:pointer;margin-left:6px;}
+.btn.green{background:#22c55e;}
+.btn.red{background:#ef4444;}
+.card{background:#0f1b33;padding:18px;border-radius:12px;margin:12px;}
+input, textarea, select{
+  width:100%;padding:10px;margin-top:6px;border-radius:8px;background:#162544;color:#fff;border:1px solid #243b55;
+}
+textarea{min-height:90px;resize:vertical;}
+table{width:100%;border-collapse:collapse;margin-top:12px;overflow:hidden;border-radius:10px;}
+th,td{padding:10px;border-bottom:1px solid rgba(255,255,255,.1);font-size:14px;vertical-align:top;}
+th{background:rgba(255,255,255,.06);text-align:right;}
+.tabs{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px;}
+.tab{background:#162544;border:1px solid #243b55;color:#fff;padding:8px 12px;border-radius:10px;cursor:pointer;}
+.tab.active{background:#3b82f6;border-color:#3b82f6;}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+@media(max-width:900px){.grid{grid-template-columns:1fr;}}
+hr{border:0;border-top:1px solid rgba(255,255,255,.1);margin:14px 0;}
+.small{opacity:.8;font-size:13px}
+</style>
+</head>
+
+<body>
+
+<div class="topbar">
+  <div>🏛 STOR7S | الإدارة العامة</div>
+  <div>
+    <button class="btn" onclick="refreshCurrent()">🔄 تحديث</button>
+    <button class="btn red" onclick="logout()">تسجيل خروج</button>
+  </div>
+</div>
+
+<!-- ✅ إنشاء طلب شراء من الإدارة -->
+<div class="card">
+  <h2>🧾 إنشاء طلب شراء (الإدارة العامة)</h2>
+  <div class="grid">
+    <div>
+      <label>نوع الطلب</label>
+      <select id="reqType">
+        <option value="شراء">شراء</option>
+        <option value="خدمة">خدمة</option>
+        <option value="عهدة">عهدة</option>
+      </select>
+    </div>
+    <div>
+      <label>القسم</label>
+      <input id="reqDept" placeholder="مثال: الإدارة العامة" />
+      <div class="small">لو تركته فاضي، بياخذ قسم المستخدم تلقائيًا</div>
+    </div>
+  </div>
+
+  <label>وصف الطلب</label>
+  <textarea id="reqDesc" placeholder="اكتب وصف واضح للطلب..."></textarea>
+
+
+  <button class="btn green" onclick="createAdminRequest()">✅ إنشاء + تعميد تلقائي</button>
+</div>
+
+<!-- ✅ العرض والإشراف -->
+<div class="card">
+  <h2>📌 المتابعة والإشراف</h2>
+
+  <div class="tabs">
+    <div class="tab active" id="tab-requests" onclick="switchTab('requests')">الطلبات</div>
+    <div class="tab" id="tab-custody" onclick="switchTab('custody')">العهد</div>
+    <div class="tab" id="tab-logs" onclick="switchTab('logs')">الحركات</div>
+    <div class="tab" id="tab-approvals" onclick="switchTab('approvals')">الاعتمادات</div>
+    <div class="tab" id="tab-purchase" onclick="switchTab('purchase')">سجل الشراء</div>
+  </div>
+
+  <input id="search" placeholder="بحث عام..." onkeyup="filterTable()" />
+  <div id="tableWrap"></div>
+</div>
+
+<script>
+const API = "/api/core/admin";
+
+// ==================== user from localStorage ====================
+async function getUser(){
+  // 1) جرّب localStorage
+  try{
+    const u = JSON.parse(localStorage.getItem("user") || "{}");
+    if(u && u.name) return u;
+  }catch(e){}
+
+  // 2) fallback من السيرفر (session)
+  try{
+    const res = await fetch("/api/session");
+    if(res.ok){
+      const u = await res.json();
+      // توحيد شكل البيانات عشان نفس الصفحة
+      return {
+        name: u.name || "",
+        role: u.role || "",
+        department: u.department || "",
+        company: u.company || "",
+        branch: u.branch || ""
+      };
+    }
+  }catch(e){}
+
+  return {};
+}
+
+// ==================== Tabs ====================
+let CURRENT = "requests";
+
+function switchTab(name){
+  CURRENT = name;
+  document.querySelectorAll(".tab").forEach(t=>t.classList.remove("active"));
+  document.getElementById("tab-"+name).classList.add("active");
+  document.getElementById("search").value = "";
+  loadCurrent();
+}
+
+function refreshCurrent(){
+  loadCurrent();
+}
+
+// ==================== Loaders ====================
+async function loadCurrent(){
+  if(CURRENT === "requests") return loadRequests();
+  if(CURRENT === "custody") return loadCustody();
+  if(CURRENT === "logs") return loadLogs();
+  if(CURRENT === "approvals") return loadApprovals();
+  if(CURRENT === "purchase") return loadPurchase();
+}
+
+async function loadRequests(){
+  const res = await fetch(API+"/requests");
+  const data = await res.json();
+
+  let html = `
+    <table id="table">
+      <thead>
+        <tr>
+          <th>رقم</th><th>الرافع</th><th>القسم</th><th>النوع</th><th>الحالة</th><th>إجراء</th>
+        </tr>
+      </thead>
+      <tbody>
+  `;
+
+  data.forEach(r=>{
+    const state = (r.الحالة||"");
+    const needApproval = (state === "بانتظار مدير القسم");
+
+    html += `
+      <tr>
+        <td>${r.رقم_الطلب||"-"}</td>
+        <td>${r.الرافع||"-"}</td>
+        <td>${r.القسم||"-"}</td>
+        <td>${r.النوع||"-"}</td>
+        <td>${state||"-"}</td>
+        <td>
+          ${needApproval
+            ? `<button class="btn green" onclick="adminApprove('${r.رقم_الطلب}')">تعميد إداري ✔️</button>`
+            : "-"
+          }
+        </td>
+      </tr>
+    `;
+  });
+
+  html += `</tbody></table>`;
+  document.getElementById("tableWrap").innerHTML = html;
+}
+
+async function loadCustody(){
+  const res = await fetch(API+"/custody");
+  const data = await res.json();
+
+  let html = `
+    <table id="table">
+      <thead>
+        <tr>
+          <th>رقم الطلب</th><th>الموظف</th><th>نوع العهدة</th><th>سيريال</th>
+          <th>تاريخ التسليم</th><th>تاريخ الاسترجاع</th><th>الحالة</th>
+        </tr>
+      </thead>
+      <tbody>
+  `;
+
+  data.forEach(r=>{
+    html += `
+      <tr>
+        <td>${r.رقم_الطلب||"-"}</td>
+        <td>${r.الموظف||"-"}</td>
+        <td>${r.نوع_العهدة||"-"}</td>
+        <td>${r.سيريال||"-"}</td>
+        <td>${r.تاريخ_التسليم||"-"}</td>
+        <td>${r.تاريخ_الاسترجاع||"-"}</td>
+        <td>${r.الحالة||"-"}</td>
+      </tr>
+    `;
+  });
+
+  html += `</tbody></table>`;
+  document.getElementById("tableWrap").innerHTML = html;
+}
+
+async function loadLogs(){
+  const res = await fetch(API+"/logs");
+  const data = await res.json();
+
+  let html = `
+    <table id="table">
+      <thead>
+        <tr>
+          <th>رقم الطلب</th><th>الحدث</th><th>منفذ</th><th>الدور</th><th>تاريخ</th><th>وقت</th><th>ملاحظات</th>
+        </tr>
+      </thead>
+      <tbody>
+  `;
+
+  data.forEach(r=>{
+    html += `
+      <tr>
+        <td>${r.رقم_الطلب||"-"}</td>
+        <td>${r.الحدث||"-"}</td>
+        <td>${r.منفذ||"-"}</td>
+        <td>${r.الدور||"-"}</td>
+        <td>${r.التاريخ||"-"}</td>
+        <td>${r.الوقت||"-"}</td>
+        <td>${r.ملاحظات||"-"}</td>
+      </tr>
+    `;
+  });
+
+  html += `</tbody></table>`;
+  document.getElementById("tableWrap").innerHTML = html;
+}
+
+async function loadApprovals(){
+  const res = await fetch(API+"/approvals");
+  const data = await res.json();
+
+  let html = `
+    <table id="table">
+      <thead>
+        <tr>
+          <th>رقم الطلب</th><th>الجهة</th><th>المعتمد</th><th>تاريخ</th><th>وقت</th><th>ملاحظات</th>
+        </tr>
+      </thead>
+      <tbody>
+  `;
+
+  data.forEach(r=>{
+    html += `
+      <tr>
+        <td>${r.رقم_الطلب||"-"}</td>
+        <td>${r.الجهة||"-"}</td>
+        <td>${r.المعتمد||"-"}</td>
+        <td>${r.التاريخ||"-"}</td>
+        <td>${r.الوقت||"-"}</td>
+        <td>${r.ملاحظات||"-"}</td>
+      </tr>
+    `;
+  });
+
+  html += `</tbody></table>`;
+  document.getElementById("tableWrap").innerHTML = html;
+}
+
+async function loadPurchase(){
+  const res = await fetch(API+"/purchase");
+  const data = await res.json();
+
+  let html = `
+    <table id="table">
+      <thead>
+        <tr>
+          <th>رقم الطلب</th><th>المورد</th><th>السعر</th><th>الفاتورة</th><th>تاريخ الفاتورة</th><th>الحالة</th>
+        </tr>
+      </thead>
+      <tbody>
+  `;
+
+  data.forEach(r=>{
+    html += `
+      <tr>
+        <td>${r.رقم_الطلب||"-"}</td>
+        <td>${r.المورد||"-"}</td>
+        <td>${r.السعر||"-"}</td>
+        <td>${r.الفاتورة||"-"}</td>
+        <td>${r.تاريخ_الفاتورة||"-"}</td>
+        <td>${r.الحالة||"-"}</td>
+      </tr>
+    `;
+  });
+
+  html += `</tbody></table>`;
+  document.getElementById("tableWrap").innerHTML = html;
+}
+
+
+// ==================== Create Admin Request ====================
+async function createAdminRequest(){
+  const u = await getUser();
+
+  const type = document.getElementById("reqType").value;
+  const dept = document.getElementById("reqDept").value.trim() || (u.department || "الإدارة العامة");
+  const desc = document.getElementById("reqDesc").value.trim();
+
+  const payload = {
+  name: u.name || "",
+  role: u.role || "الإدارة العامة",
+  department: dept,
+  company: u.company || "",
+  branch: u.branch || "",
+  type: type,
+  description: desc
+};
+
+
+  const res = await fetch(API+"/create_request",{
+    method:"POST",
+    headers:{"Content-Type":"application/json"},
+    body: JSON.stringify(payload)
+  });
+
+  const out = await res.json();
+  if(!out.ok){
+    alert("❌ " + (out.msg || "حدث خطأ"));
+    return;
+  }
+
+  alert("✅ " + out.msg + " | رقم الطلب: " + out.رقم_الطلب);
+  document.getElementById("reqDesc").value = "";
+  switchTab("requests");
+}
+
+
+// ==================== Admin Approve ====================
+async function adminApprove(id){
+  const u = await getUser();
+  if(!confirm("هل تريد تعميد هذا الطلب من الإدارة العامة؟")) return;
+
+  const res = await fetch(API+"/approve_request",{
+    method:"POST",
+    headers:{"Content-Type":"application/json"},
+    body: JSON.stringify({
+      رقم_الطلب: id,
+      admin_name: u.name || "الإدارة العامة",
+      note: "تعميد إداري (لا يوجد مدير قسم)"
+    })
+  });
+
+  const out = await res.json();
+  if(!out.ok){
+    alert("❌ " + (out.msg || "فشل التعميد"));
+    return;
+  }
+
+  alert("✔️ " + out.msg);
+  loadRequests();
+}
+
+
+// ==================== Search filter ====================
+function filterTable(){
+  const q = document.getElementById("search").value.toLowerCase();
+  document.querySelectorAll("#table tbody tr").forEach(r=>{
+    r.style.display = r.textContent.toLowerCase().includes(q) ? "" : "none";
+  });
+}
+
+// ==================== Logout ====================
+function logout(){ localStorage.clear(); location.href="/Login.html"; }
+
+// Auto load
+loadCurrent();
+</script>
+
+</body>
+</html>

@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>STOR7S | الموارد البشرية (HR)</title>
+
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&display=swap');
+body{font-family:Tajawal;background:#0b1220;color:#fff;margin:0;}
+.topbar{background:#101d36;padding:15px;display:flex;justify-content:space-between;align-items:center;}
+.btn{background:#3b82f6;border:0;padding:10px 15px;border-radius:8px;color:#fff;cursor:pointer;}
+.btn.red{background:#ef4444;}
+.btn.green{background:#22c55e;}
+.btn.yellow{background:#eab308;}
+.card{background:#0f1b33;padding:20px;border-radius:12px;margin:10px;}
+input,select,textarea{width:100%;padding:10px;margin-top:5px;border-radius:8px;background:#162544;color:#fff;border:1px solid #243b55;}
+table{width:100%;border-collapse:collapse;margin-top:15px;}
+th,td{padding:10px;border-bottom:1px solid rgba(255,255,255,.1);}
+</style>
+</head>
+
+<body>
+
+<div class="topbar">
+  <div>🟥 STOR7S | الموارد البشرية (HR)</div>
+  <button class="btn" onclick="logout()">تسجيل خروج</button>
+</div>
+
+<nav style="display:flex;gap:10px;margin:10px;">
+  <button class="btn" onclick="loadAll()">📌 جميع العهد</button>
+  <button class="btn" onclick="showAdd()">➕ إضافة عهدة</button>
+  <button class="btn" onclick="showTransfer()">🔁 نقل عهدة</button>
+  <button class="btn" onclick="showClose()">🚫 إقفال عهدة</button>
+    <button class="btn" onclick="showRequest()">🧾 طلب شراء</button>
+</nav>
+
+<div id="request" class="card" style="display:none;">
+  <h2>🧾 إنشاء طلب شراء (HR)</h2>
+  <textarea id="r_desc" placeholder="وصف الطلب"></textarea>
+  <button class="btn green" onclick="createRequest()">إرسال الطلب</button>
+</div>
+
+<!-- ================= قائمة العهد ================= -->
+<div id="list" class="card">
+  <h2>📌 جميع العهد الحالية</h2>
+  <table id="tbl"><tbody></tbody></table>
+</div>
+
+<!-- ================= إضافة عهدة ================= -->
+<div id="add" class="card" style="display:none;">
+  <h2>➕ إضافة عهدة يدوية</h2>
+  <input id="a_emp" placeholder="الموظف المستفيد">
+<textarea id="a_items" placeholder="أدخل العهد (كل سطر صنف)
+مثال:
+Laptop
+Phone
+Screen"></textarea>
+<button class="btn green" onclick="addMultiCustody()">حفظ العهد</button>
+
+</div>
+
+<!-- ================= نقل عهدة ================= -->
+<div id="transfer" class="card" style="display:none;">
+  <h2>🔁 نقل عهدة</h2>
+  <input id="t_id" placeholder="رقم الطلب/العهدة">
+  <input id="t_new_emp" placeholder="الموظف الجديد">
+  <button class="btn yellow" onclick="transferCustody()">تنفيذ النقل</button>
+</div>
+
+<!-- ================= إقفال عهدة ================= -->
+<div id="close" class="card" style="display:none;">
+  <h2>🚫 إقفال عهدة</h2>
+  <input id="c_id" placeholder="رقم الطلب/العهدة">
+  <button class="btn red" onclick="closeCustody()">إقفال نهائي</button>
+</div>
+
+<script>
+const API = "/api/core/hr";
+let USER = {};
+
+async function loadUserSession(){
+  try{
+    const r = await fetch("/api/session", { credentials:"include" });
+    if(!r.ok) throw new Error("no session");
+    USER = await r.json();
+
+    // (اختياري) نخزنه للمرة القادمة
+    localStorage.setItem("user", JSON.stringify(USER));
+  }catch(e){
+    USER = JSON.parse(localStorage.getItem("user")||"{}");
+  }
+}
+
+
+// ================= واجهة تحكم العرض =================
+function showRequest(){ hideAll(); document.getElementById("request").style.display="block"; }
+function showTransfer(){hideAll(); document.getElementById("transfer").style.display="block";}
+function showClose(){hideAll(); document.getElementById("close").style.display="block";}
+function hideAll(){
+  document.getElementById("add").style.display="none";
+  document.getElementById("transfer").style.display="none";
+  document.getElementById("close").style.display="none";
+}
+
+// ================= عرض العهد =================
+async function loadAll(){
+  let res = await fetch(API+"/custody/all");
+  let data = await res.json();
+
+  let rows = `
+    <tr>
+      <th>رقم</th>
+      <th>الموظف</th>
+      <th>القسم</th>
+      <th>النوع</th>
+      <th>الصنف</th>
+<th>السيريال</th>
+<th>الكمية</th>
+
+      <th>الحالة</th>
+    </tr>
+  `;
+
+  data.forEach(r=>{
+    rows+=`
+<tr>
+  <td>${r.رقم_العهدة}</td>
+  <td>${r.الموظف}</td>
+  <td>${r.القسم}</td>
+  <td>${r.نوع_العهدة}</td>
+  <td>${r.اسم_الصنف || "-"}</td>
+  <td>${r.سيريال || "-"}</td>
+  <td>${r.الكمية}</td>
+  <td>
+  ${r.الحالة}
+  <br>
+  <button class="btn green" onclick="receive('${r.رقم_العهدة}')">استلام</button>
+  <button class="btn yellow" onclick="dispatch('${r.رقم_العهدة}')">تسليم</button>
+</td>
+</tr>
+`;
+
+  });
+
+  document.querySelector("#tbl").innerHTML = rows;
+}
+
+// ================= إضافة عهدة =================
+async function addCustody(){
+  let data = {
+    رقم_العهدة: "CST-" + Date.now(),
+    الموظف: document.getElementById("a_emp").value,
+    القسم: USER.department,
+    نوع_العهدة: document.getElementById("a_type").value,
+    سيريال: document.getElementById("a_serial").value,
+    الكمية: 1,
+    ملاحظات: document.getElementById("a_note").value
+  };
+
+  let r = await fetch(API+"/custody/add",{
+    method:"POST",
+    headers:{"Content-Type":"application/json"},
+    body:JSON.stringify(data)
+  });
+
+  let res = await r.json();
+  if(res.ok){
+    alert("✔️ تم إنشاء العهدة بنجاح");
+    loadAll();
+  }
+}
+
+
+// ================= نقل عهدة =================
+async function transferCustody(){
+  let data = {
+  رقم_العهدة: document.getElementById("t_id").value,
+  الموظف: document.getElementById("t_new_emp").value
+};
+
+
+  let r = await fetch(API+"/custody/transfer",{
+    method:"POST",
+    headers:{"Content-Type":"application/json"},
+    body:JSON.stringify(data)
+  });
+
+  if(r.ok){
+    alert("✔️ تم نقل العهدة بنجاح");
+    loadAll();
+  }
+}
+
+
+// ================= إقفال عهدة =================
+async function closeCustody(){
+  const cid = document.getElementById("c_id").value.trim();
+  if(!cid) return alert("اكتب رقم العهدة");
+
+  let r = await fetch(API+"/custody/close",{
+    method:"POST",
+    headers:{"Content-Type":"application/json"},
+    body:JSON.stringify({ رقم_العهدة: cid })
+  });
+
+  let res = await r.json();
+  if(res.ok){
+    alert("✔️ تم اقفال العهدة بنجاح");
+    document.getElementById("c_id").value="";
+    loadAll();
+  }else{
+    alert(res.msg || "حدث خطأ");
+  }
+}
+
+
+// ================= تسجيل خروج =================
+function logout(){localStorage.clear();location.reload();}
+
+
+// تحميل
+(async ()=>{
+  await loadUserSession();
+  await loadAll();
+})();
+
+
+    async function createRequest(){
+  let data = {
+    الرافع: USER.name,
+    القسم: USER.department,
+    الشركة: USER.company,
+    الفرع: USER.branch,
+    النوع: "شراء",
+    الوصف: document.getElementById("r_desc").value
+  };
+
+  let r = await fetch(API+"/request/create",{
+    method:"POST",
+    headers:{"Content-Type":"application/json"},
+    body:JSON.stringify(data)
+  });
+
+  let res = await r.json();
+  if(res.ok){
+    alert("✔️ تم إنشاء الطلب رقم " + res.رقم_الطلب);
+    document.getElementById("r_desc").value="";
+  }
+}
+
+
+    async function addMultiCustody(){
+  let items = document.getElementById("a_items").value
+    .split("\n")
+    .filter(x=>x.trim())
+    .map(x=>({ اسم:x.trim() }));
+
+  let data = {
+  الموظف: document.getElementById("a_emp").value,
+  items: items
+};
+
+
+
+  let r = await fetch(API+"/custody/add-multi",{
+    method:"POST",
+    headers:{"Content-Type":"application/json"},
+    body:JSON.stringify(data)
+  });
+
+  let res = await r.json();
+  if(res.ok){
+    alert("✔️ تم إضافة العهد");
+    loadAll();
+  }
+}
+
+
+    async function receive(id){
+  await fetch(API+"/custody/receive",{
+    method:"POST",
+    headers:{"Content-Type":"application/json"},
+    body:JSON.stringify({رقم_العهدة:id})
+  });
+  loadAll();
+}
+
+async function dispatch(id){
+  await fetch(API+"/custody/dispatch",{
+    method:"POST",
+    headers:{"Content-Type":"application/json"},
+    body:JSON.stringify({رقم_العهدة:id})
+  });
+  loadAll();
+}
+
+    function showAdd(){
+  hideAll();
+  document.getElementById("add").style.display="block";
+}
+
+</script>
+
+</body>
+</html>

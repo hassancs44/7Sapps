@@ -1,0 +1,9 @@
+__pycache__/
+.venv/
+.env
+*.db
+uploads/
+chat_uploads/
+data/gmail_token.json
+data/gmail_credentials.json
+xenon-anvil-*.json

@@ -1,0 +1,1296 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>لوحة الأدمن | SEVENS</title>
+
+  <!-- خطوط وأيقونات -->
+  <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+
+  <style>
+    :root{
+      --blue-50:#e3f2fd; --blue-100:#bbdefb; --blue-200:#90caf9; --blue-300:#64b5f6;
+      --blue-400:#42a5f5; --blue-500:#2196f3; --blue-600:#1e88e5; --blue-700:#1976d2;
+      --sky:#f8fbff; --ink:#2c3e50; --muted:#607d8b; --line:#eef5ff;
+      --green:#43a047; --red:#e53935; --amber:#ffb300; --shadow: rgba(0,0,0,.06);
+    }
+
+    *{
+      margin:0;
+      padding:0;
+      box-sizing:border-box;
+      font-family:'Tajawal',sans-serif
+    }
+
+    body{
+      background:var(--sky);
+      color:var(--ink);
+      min-height:100vh
+    }
+
+    /* Navbar */
+    .navbar{
+      background:#fff;
+      padding:16px 24px;
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      box-shadow:0 2px 12px var(--shadow);
+      position:sticky;
+      top:0;
+      z-index:100
+    }
+    .logo-box{display:flex;align-items:center;gap:12px}
+    .logo-box img{width:40px;height:40px;object-fit:contain;border-radius:10px}
+    .logo-box h1{color:var(--blue-600);font-size:20px;font-weight:700}
+    .user-info{display:flex;align-items:center;gap:12px;color:#34495e;font-weight:600}
+    .logout-btn{
+      background:#e3f2fd;
+      color:#1976d2;
+      border:none;
+      padding:6px 14px;
+      border-radius:8px;
+      font-weight:600;
+      cursor:pointer
+    }
+    .logout-btn:hover{background:#bbdefb}
+
+    .container{max-width:1220px;margin:24px auto;padding:0 16px}
+
+    /* ===== إحصائيات أعلى الصفحة ===== */
+    .stats-bar{
+      display:grid;
+      grid-template-columns:repeat(auto-fit,minmax(180px,1fr));
+      gap:12px;
+      margin-bottom:18px;
+    }
+    .stat-card{
+      background:#fff;
+      border-radius:14px;
+      padding:12px 14px;
+      box-shadow:0 3px 10px var(--shadow);
+      display:flex;
+      flex-direction:column;
+      gap:4px;
+    }
+    .stat-label{
+      font-size:13px;
+      color:var(--muted);
+      display:flex;
+      align-items:center;
+      gap:6px;
+    }
+    .stat-label i{font-size:14px;}
+    .stat-value{
+      font-size:20px;
+      font-weight:700;
+      color:var(--blue-700);
+    }
+    .stat-pill{
+      font-size:11px;
+      padding:2px 8px;
+      border-radius:999px;
+      background:var(--blue-50);
+      color:var(--blue-700);
+      align-self:flex-start;
+    }
+    .stat-card--new .stat-value{color:#1976d2;}
+    .stat-card--progress .stat-value{color:#ff9800;}
+    .stat-card--closed .stat-value{color:#43a047;}
+    .stat-card--archived .stat-value{color:#757575;}
+
+    /* Tabs */
+    .tabs{display:flex;gap:10px;margin-bottom:18px;flex-wrap:wrap}
+    .tab-btn{
+      padding:10px 14px;
+      border:2px solid var(--blue-50);
+      border-radius:10px;
+      background:#fff;
+      color:#1565c0;
+      font-weight:700;
+      cursor:pointer
+    }
+    .tab-btn.active{
+      background:linear-gradient(90deg,var(--blue-500),var(--blue-700));
+      color:#fff;
+      border-color:transparent
+    }
+    .tab{display:none}
+    .tab.active{display:block}
+
+    .section-title{
+      font-size:22px;
+      color:var(--blue-600);
+      margin:20px 0 12px;
+      padding-bottom:10px;
+      border-bottom:2px solid var(--blue-50);
+      display:flex;
+      align-items:center;
+      gap:10px
+    }
+
+    /* Filters & Buttons */
+    .filters{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      align-items:center;
+      margin-bottom:12px
+    }
+    .form-control{
+      padding:10px;
+      border:2px solid var(--blue-50);
+      border-radius:10px;
+      background:#fff
+    }
+    .btn{
+      padding:10px 14px;
+      border:none;
+      border-radius:10px;
+      font-weight:700;
+      cursor:pointer
+    }
+    .btn-primary{background:linear-gradient(90deg,var(--blue-500),var(--blue-700));color:#fff}
+    .btn-green{background:var(--green);color:#fff}
+    .btn-danger{background:var(--red);color:#fff}
+    .btn-outline{background:#fff;border:2px solid var(--blue-50);color:#1565c0}
+
+    /* Requests grid (cards) */
+    .requests-grid{
+      display:grid;
+      grid-template-columns:repeat(auto-fill,minmax(280px,1fr));
+      gap:18px
+    }
+    .request-card{
+      background:#fff;
+      border-radius:18px;
+      border:1px solid #e3f2fd;
+      box-shadow:0 4px 10px rgba(0,0,0,.08);
+      transition:.3s;
+      text-align:right;
+      padding:18px;
+      display:flex;
+      flex-direction:column;
+      justify-content:space-between;
+      position:relative
+    }
+    .request-card:hover{transform:translateY(-5px);box-shadow:0 8px 20px rgba(30,136,229,.18)}
+
+    .status-header{height:6px;border-radius:12px 12px 0 0}
+    .status-new{background:#2196f3}
+    .status-in-progress{background:#ff9800}
+    .status-closed{background:#4caf50}
+    .status-rejected{background:#f44336}
+    .status-archived{background:#757575}
+
+    .card-content{padding:10px 0}
+    .request-title{font-size:18px;margin:8px 0 10px;color:#0d47a1;font-weight:700}
+    .request-meta{display:flex;flex-wrap:wrap;gap:12px;color:#455a64;font-size:14px;margin-bottom:10px}
+    .status-badge{display:inline-block;padding:4px 10px;border-radius:16px;font-size:12px;color:#fff}
+    .no-requests{text-align:center;color:#7f8c8d;padding:18px}
+
+    /* Users table */
+    table{width:100%;border-collapse:separate;border-spacing:0 8px}
+    thead th{
+      background:#eaf3ff;
+      color:#0d47a1;
+      padding:10px;
+      border-radius:10px;
+      font-size:14px
+    }
+    tbody td{background:#fff;padding:10px;border:1px solid var(--line)}
+    tbody tr{box-shadow:0 2px 8px rgba(0,0,0,.04)}
+    .action-btns{display:flex;gap:6px;flex-wrap:wrap}
+
+    /* Modal */
+    .modal{
+      display:none;
+      position:fixed;
+      inset:0;
+      background:rgba(0,0,0,.45);
+      justify-content:center;
+      align-items:center;
+      z-index:2000
+    }
+    .modal-content{
+      background:#fff;
+      width:90%;
+      max-width:560px;
+      border-radius:16px;
+      padding:20px 18px
+    }
+
+    /* Toast */
+    .toast{
+      position:fixed;
+      bottom:30px;
+      left:50%;
+      transform:translateX(-50%);
+      padding:12px 25px;
+      border-radius:10px;
+      color:#fff;
+      font-size:15px;
+      opacity:0;
+      transition:all .4s ease;
+      z-index:9999
+    }
+    .toast.show{opacity:1;bottom:50px}
+    .toast.success{background:#4caf50}
+    .toast.error{background:#e74c3c}
+    .toast.info{background:#3498db}
+  </style>
+</head>
+<body>
+  <!-- Navbar -->
+  <nav class="navbar">
+    <div class="logo-box">
+      <img src="{{ url_for('static', filename='7s.jpg') }}" alt="logo">
+      <h1>لوحة الأدمن</h1>
+    </div>
+    <div class="user-info">
+      <span id="userWelcome">جارٍ التحميل...</span>
+      <button class="logout-btn" onclick="logout()"><i class="fas fa-sign-out-alt"></i> خروج</button>
+    </div>
+  </nav>
+
+  <div class="container">
+    <!-- شريط الإحصائيات -->
+    <div class="stats-bar" id="statsBar">
+      <!-- سيتم تعبئته من جافاسكربت -->
+    </div>
+
+    <!-- Tabs -->
+    <div class="tabs">
+      <button class="tab-btn active" onclick="openTab('tab-requests', this)"><i class="fas fa-list"></i> الطلبات</button>
+      <button class="tab-btn" onclick="openTab('tab-users', this)"><i class="fas fa-users"></i> المستخدمين</button>
+      <button class="tab-btn" onclick="openTab('tab-departments', this)"><i class="fas fa-building"></i> الإدارات</button>
+    </div>
+
+    <!-- === Requests Tab === -->
+    <div id="tab-requests" class="tab active">
+      <div class="section-title"><i class="fas fa-inbox"></i> إدارة جميع الطلبات</div>
+
+      <div class="filters">
+        <input id="reqSearch" class="form-control"
+               placeholder="ابحث في رقم الطلب / العنوان / القسم"
+               oninput="renderRequests()" style="min-width:260px">
+
+        <select id="reqStatusFilter" class="form-control" onchange="renderRequests()">
+          <option value="">جميع الحالات</option>
+          <option>جديد</option>
+          <option>قيد المراجعة</option>
+          <option>جاري التنفيذ</option>
+          <option>معلق</option>
+          <option>مغلق</option>
+          <option>مرفوض</option>
+        </select>
+
+        <label style="display:flex;align-items:center;gap:6px;font-size:14px;color:#455a64;">
+          <input type="checkbox" id="showArchivedToggle" onchange="renderRequests()">
+          عرض الطلبات المؤرشفة فقط
+        </label>
+
+        <button class="btn btn-outline" onclick="loadRequests()">
+          <i class="fas fa-sync-alt"></i> تحديث
+        </button>
+
+        <button class="btn btn-outline" onclick="exportRequestsCSV(false)">
+          <i class="fas fa-file-export"></i> تصدير (الطلبات الظاهرة)
+        </button>
+
+        <button class="btn btn-outline" onclick="exportRequestsCSV(true)">
+          <i class="fas fa-download"></i> تصدير جميع الطلبات
+        </button>
+      </div>
+
+      <div class="requests-grid" id="requestsContainer">
+        <div class="no-requests">جارٍ التحميل...</div>
+      </div>
+    </div>
+
+    <!-- === Users Tab === -->
+    <div id="tab-users" class="tab">
+      <div class="section-title"><i class="fas fa-database"></i> قاعدة بيانات المستخدمين</div>
+
+      <div class="filters">
+        <input id="userSearch" class="form-control"
+               placeholder="ابحث بالاسم / الإيميل / القسم / الصلاحية"
+               oninput="renderUsers()">
+
+        <select id="userStatusFilter" class="form-control" onchange="renderUsers()">
+          <option value="">جميع الحالات</option>
+          <option value="نشط">نشط</option>
+          <option value="مؤرشف">مؤرشف</option>
+        </select>
+
+        <button class="btn btn-primary" onclick="openUserModal()">
+          <i class="fas fa-user-plus"></i> إضافة مستخدم
+        </button>
+
+        <button class="btn btn-outline" onclick="exportUsersCSV()">
+          <i class="fas fa-file-export"></i> تصدير CSV
+        </button>
+      </div>
+
+      <div style="overflow:auto">
+        <table>
+          <thead>
+            <tr>
+              <th>الاسم</th>
+              <th>الصلاحية</th>
+              <th>كلمة المرور</th>
+              <th>البريد الإلكتروني</th>
+              <th>القسم</th>
+              <th>الحالة</th>
+              <th style="min-width:260px">إجراءات</th>
+            </tr>
+          </thead>
+          <tbody id="usersBody">
+            <tr><td colspan="7" class="no-requests">جارٍ التحميل...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- === Departments Tab === -->
+    <div id="tab-departments" class="tab">
+      <div class="section-title"><i class="fas fa-building"></i> إدارة الأقسام</div>
+      <div id="departmentsContent">
+        <div class="no-requests">سيتم تحميل بيانات الأقسام بعد جلب المستخدمين والطلبات...</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Add/Edit User -->
+  <div class="modal" id="userModal">
+    <div class="modal-content">
+      <h3 id="userModalTitle" style="margin-bottom:10px;color:#1565c0">إضافة مستخدم</h3>
+      <div class="row" style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+        <div class="col" style="display:flex;flex-direction:column;gap:6px">
+          <label>الاسم</label>
+          <input id="u_name" class="form-control">
+        </div>
+        <div class="col" style="display:flex;flex-direction:column;gap:6px">
+          <label>الصلاحية</label>
+          <input id="u_role" class="form-control" placeholder="موظف / مدير قسم / مدير عام / إدارة الموارد البشرية / admin">
+        </div>
+        <div class="col" style="display:flex;flex-direction:column;gap:6px">
+          <label>كلمة المرور</label>
+          <input id="u_password" class="form-control">
+        </div>
+        <div class="col" style="display:flex;flex-direction:column;gap:6px">
+          <label>البريد الإلكتروني</label>
+          <input id="u_email" class="form-control" placeholder="example@sevens.sa">
+        </div>
+        <div class="col" style="display:flex;flex-direction:column;gap:6px">
+          <label>القسم</label>
+          <input id="u_department" class="form-control">
+        </div>
+        <div class="col" style="display:flex;flex-direction:column;gap:6px">
+          <label>الحالة</label>
+          <select id="u_status" class="form-control">
+            <option>نشط</option>
+            <option>مؤرشف</option>
+          </select>
+        </div>
+      </div>
+      <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:12px">
+        <button class="btn btn-outline" onclick="closeUserModal()">إلغاء</button>
+        <button class="btn btn-primary" onclick="saveUser()">حفظ</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: View User Details -->
+  <div class="modal" id="userViewModal">
+    <div class="modal-content">
+      <h3 style="margin-bottom:10px;color:#1565c0">تفاصيل المستخدم</h3>
+      <div id="userViewBody"></div>
+      <div style="display:flex;justify-content:flex-end;margin-top:12px;">
+        <button class="btn btn-outline" onclick="closeUserViewModal()">إغلاق</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Request Details -->
+  <div class="modal" id="requestModal">
+    <div class="modal-content" style="max-width:700px;">
+      <h3 style="margin-bottom:10px;color:#1565c0">تفاصيل الطلب</h3>
+      <div id="requestDetailsBody"></div>
+      <div style="display:flex;gap:8px;justify-content:space-between;margin-top:12px;flex-wrap:wrap">
+        <button class="btn btn-outline" onclick="exportSingleRequestToCSV()">
+          <i class="fas fa-file-export"></i> تصدير هذه البيانات
+        </button>
+        <div style="flex:1"></div>
+        <button class="btn btn-outline" onclick="closeRequestModal()">إغلاق</button>
+        <button class="btn btn-primary" onclick="loadRequestChat()">
+          <i class="fas fa-comments"></i> عرض المحادثة
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Chat Log -->
+  <div class="modal" id="chatModal">
+    <div class="modal-content" style="max-width:700px;max-height:80vh;display:flex;flex-direction:column;">
+      <h3 style="margin-bottom:10px;color:#1565c0">سجل المحادثة</h3>
+      <div id="chatBody" style="max-height:60vh;overflow-y:auto;margin:10px 0;"></div>
+      <div style="display:flex;justify-content:flex-end;margin-top:10px;">
+        <button class="btn btn-outline" onclick="closeChatModal()">إغلاق</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    /* ================== Utilities ================== */
+    function normalizeArabicJS(t){
+      t = (t||'').toString().trim();
+      t = t.replace(/[\u200f\u200e]/g,'');
+      t = t.replace(/[إأآا]/g,'ا');
+      t = t.replace(/\s+/g,'');
+      t = t.replace(/ة/g,'ه');
+      t = t.replace(/ادارة|إدارة|أدارة|آدارة|اداره|الادارة|الاداره/g,'اداره');
+      return t;
+    }
+
+    function showToast(msg, type="info"){
+      const t=document.createElement('div');
+      t.className=`toast show ${type}`;
+      t.textContent=msg;
+      document.body.appendChild(t);
+      setTimeout(()=>t.remove(),3500);
+    }
+
+    function statusClass(s){
+      if(!s) return 'status-in-progress';
+      if(s.includes('جديد'))   return 'status-new';
+      if(s.includes('مغلق'))   return 'status-closed';
+      if(s.includes('جاري') || s.includes('قيد'))   return 'status-in-progress';
+      if(s.includes('مرفوض'))  return 'status-rejected';
+      return 'status-in-progress';
+    }
+
+    function parseArchivedFlag(flag){
+      if(flag === true) return true;
+      if(flag === false || flag === 0) return false;
+      if(flag == null) return false;
+      const v = flag.toString().trim().toLowerCase();
+      return (v === '1' || v === 'نعم' || v === 'yes' || v === 'true' || v === 'y');
+    }
+
+    function normalizeRole(rawRole){
+      if(!rawRole) return 'employee';
+      let role = rawRole.toString().trim().toLowerCase();
+
+      // لو جاية جاهزة من الباك إند
+      if(["admin","hr","general_manager","manager","employee"].includes(role)){
+        return role;
+      }
+
+      const norm = str => str.replace(/[إأآا]/g, 'ا').replace(/ة/g,'ه').replace(/\s+/g,'');
+
+      const r = norm(rawRole.toString());
+
+      if(r.includes('ادمن') || r.includes('مشرف') || r.includes('نظام')) return 'admin';
+      if(r.includes('موارد') || r.includes('مواردبشريه') || r.includes('hr')) return 'hr';
+      if(r.includes('عام')) return 'general_manager';
+      if(r.includes('قسم') || r.includes('مديرقسم')) return 'manager';
+      if(r.includes('موظف')) return 'employee';
+
+      return 'employee';
+    }
+
+    /* ================== State ================== */
+    let currentUser = null;
+    let allRequests = [];
+    let allUsers    = [];
+    let editingUserEmail = null;
+    let currentRequestDetails = null;
+
+    /* ================== Tabs ================== */
+    function openTab(id, btn){
+      document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+      document.getElementById(id).classList.add('active');
+      document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+      btn.classList.add('active');
+    }
+
+    /* ================== Session Check & Init ================== */
+
+    async function sessionCheck() {
+      try {
+        const res = await fetch("/api/auth/session_check");
+        const data = await res.json();
+
+        if (!data.valid) {
+          localStorage.removeItem("sevens_user");
+          window.location.href = "Login.html";
+          return;
+        }
+
+        // تحديث بيانات الجلسة في التخزين المحلي
+        localStorage.setItem("sevens_user", JSON.stringify(data.user));
+      } catch (e) {
+        console.error("Session error:", e);
+        localStorage.removeItem("sevens_user");
+        window.location.href = "Login.html";
+      }
+    }
+
+    async function initAdmin(){
+      // تأكيد الجلسة من السيرفر
+      await sessionCheck();
+
+      const saved = localStorage.getItem('sevens_user');
+      if(!saved){
+        location.href = 'Login.html';
+        return;
+      }
+
+      try{
+        currentUser = JSON.parse(saved);
+      }catch(e){
+        console.error(e);
+        localStorage.removeItem('sevens_user');
+        location.href='Login.html';
+        return;
+      }
+
+      // توحيد الصلاحية
+      currentUser.role = normalizeRole(currentUser.role || '');
+
+      // السماح فقط للأدمن
+      if(currentUser.role !== 'admin'){
+        alert('هذه الصفحة مخصصة للأدمن فقط.');
+        location.href = 'Login.html';
+        return;
+      }
+
+      document.getElementById('userWelcome').textContent =
+        `مرحباً، ${currentUser.name} (صلاحية: ${currentUser.role})`;
+
+      await Promise.all([
+        loadRequests(),
+        loadUsers()
+      ]);
+
+      updateStatsBar();
+      buildDepartmentsTab();
+
+      // إعادة فحص الجلسة كل 20 ثانية
+      setInterval(sessionCheck, 20000);
+    }
+
+    document.addEventListener('DOMContentLoaded', initAdmin);
+
+    /* ================== Requests ================== */
+
+    async function loadRequests(){
+      const c = document.getElementById('requestsContainer');
+      c.innerHTML = '<div class="no-requests">جارٍ التحميل...</div>';
+
+      try{
+        // API خاصة بالأدمن – نفّذها في app.py
+        const res = await fetch('/api/admin/requests/list', {
+          method:'POST',
+          headers:{'Content-Type':'application/json'},
+          body: JSON.stringify({ include_archived:true })
+        });
+        const data = await res.json();
+        allRequests = Array.isArray(data) ? data : [];
+        renderRequests();
+        updateStatsBar();
+        buildDepartmentsTab();
+      }catch(e){
+        console.error(e);
+        c.innerHTML = '<div class="no-requests">حدث خطأ أثناء تحميل الطلبات</div>';
+      }
+    }
+
+    function getFilteredRequests(){
+      const q = (document.getElementById('reqSearch').value||'').toLowerCase().trim();
+      const statusFilter    = document.getElementById('reqStatusFilter').value || '';
+      const showArchivedOnly= document.getElementById('showArchivedToggle').checked;
+
+      let list = allRequests.slice();
+
+      list = list.map(r=>{
+        const isArch = parseArchivedFlag(r['مؤرشف']);
+        return {...r, __archived:isArch};
+      });
+
+      if(showArchivedOnly){
+        list = list.filter(r=>r.__archived);
+      }else{
+        list = list.filter(r=>!r.__archived);
+      }
+
+      if(statusFilter){
+        list = list.filter(r=>(r['الحالة']||'').includes(statusFilter));
+      }
+
+      if(q){
+        list = list.filter(r=>{
+          return [
+            r['رقم الطلب'],
+            r['العنوان'],
+            r['الوصف'],
+            r['القسم المرسل'],
+            r['القسم المستلم'],
+            r['اسم المرسل'],
+            r['اسم المستلم']
+          ].map(x=>(x||'').toString().toLowerCase()).some(v=>v.includes(q));
+        });
+      }
+
+      return list;
+    }
+
+    function renderRequests(){
+      const c = document.getElementById('requestsContainer');
+      const list = getFilteredRequests();
+
+      if(!list.length){
+        c.innerHTML = '<div class="no-requests">لا توجد طلبات مطابقة.</div>';
+        return;
+      }
+
+      c.innerHTML = list.map(req=>{
+        const status   = (req['الحالة']||'').trim();
+        const file     = req['الملف'] || '';
+        const archived = !!req.__archived;
+
+        const statusCls  = archived ? 'status-archived' : statusClass(status);
+        const statusText = archived ? 'مؤرشف' : (status || '-');
+
+        const reqId = (req['رقم الطلب']||'').toString();
+
+        return `
+          <div class="request-card" data-id="${reqId}">
+            <div class="status-header ${statusCls}"></div>
+            <div class="card-content">
+              <div style="display:flex;justify-content:space-between;color:#607d8b;font-size:13px">
+                <div>#${reqId}</div>
+                <div>${req['التاريخ']||''} ${req['الوقت']||''}</div>
+              </div>
+
+              <div class="request-title">${req['العنوان']||''}</div>
+              <div style="color:#607d8b;margin:6px 0;max-height:60px;overflow:auto;">${req['الوصف']||''}</div>
+
+              <div class="request-meta">
+                <div><i class="fas fa-user"></i> المرسل: ${req['اسم المرسل']||'-'} (${req['القسم المرسل']||'-'})</div>
+                <div><i class="fas fa-user-check"></i> المستلم: ${req['اسم المستلم']||'-'} (${req['القسم المستلم']||'-'})</div>
+              </div>
+
+              <div style="margin:8px 0;display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+                <span class="status-badge ${statusCls}">${statusText}</span>
+                <span style="color:#78909c;font-size:13px;">آخر تحديث: ${req['آخر تحديث بواسطة']||'-'}</span>
+                ${ archived ? '<span style="font-size:11px;color:#757575;background:#eeeeee;padding:2px 6px;border-radius:999px;">في الأرشيف</span>' : '' }
+              </div>
+
+              <div style="margin:8px 0;">
+                ${
+                  file
+                  ? `<a href="/uploads/${file}" target="_blank" class="btn btn-outline"><i class="fas fa-paperclip"></i> عرض المرفق</a>`
+                  : `<span style="color:#9e9e9e"><i class="fas fa-paperclip"></i> لا يوجد مرفق</span>`
+                }
+              </div>
+
+              <div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap">
+                <button class="btn btn-outline" onclick="openRequestDetails('${reqId}')">
+                  <i class="fas fa-eye"></i> تفاصيل
+                </button>
+                ${
+                  archived
+                  ? `<button class="btn btn-green" onclick="unarchiveRequest('${reqId}')"><i class="fas fa-undo"></i> استرجاع الطلب</button>`
+                  : `<button class="btn btn-danger" onclick="archiveRequest('${reqId}')"><i class="fas fa-box-archive"></i> أرشفة الطلب</button>`
+                }
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    async function archiveRequest(reqId){
+      if(!confirm('تأكيد أرشفة هذا الطلب؟\nسيختفي من كل الصفحات الأخرى ولا يظهر إلا من خلال لوحة الأدمن عند تفعيل "عرض المؤرشفة".')) return;
+
+      try{
+        const res = await fetch('/api/admin/requests/archive', {
+          method:'POST',
+          headers:{'Content-Type':'application/json'},
+          body: JSON.stringify({
+            request_id: reqId,
+            archive: true,
+            updated_by: currentUser.name
+          })
+        });
+        const data = await res.json();
+        if(data.success){
+          showToast('تمت أرشفة الطلب ✅','success');
+          await loadRequests();
+        }else{
+          showToast('فشل في أرشفة الطلب ❌','error');
+        }
+      }catch(e){
+        console.error(e);
+        showToast('تعذر الاتصال بالخادم','error');
+      }
+    }
+
+    async function unarchiveRequest(reqId){
+      if(!confirm('تأكيد استرجاع هذا الطلب من الأرشيف؟')) return;
+
+      try{
+        const res = await fetch('/api/admin/requests/archive', {
+          method:'POST',
+          headers:{'Content-Type':'application/json'},
+          body: JSON.stringify({
+            request_id: reqId,
+            archive: false,
+            updated_by: currentUser.name
+          })
+        });
+        const data = await res.json();
+        if(data.success){
+          showToast('تم استرجاع الطلب ✅','success');
+          await loadRequests();
+        }else{
+          showToast('فشل في استرجاع الطلب ❌','error');
+        }
+      }catch(e){
+        console.error(e);
+        showToast('تعذر الاتصال بالخادم','error');
+      }
+    }
+
+    function openRequestDetails(reqId){
+      const req = allRequests.find(r => (r['رقم الطلب']||'').toString() === reqId.toString());
+      if(!req){
+        showToast('لم يتم العثور على الطلب','error');
+        return;
+      }
+      currentRequestDetails = req;
+
+      const archived = parseArchivedFlag(req['مؤرشف']);
+      const status   = (req['الحالة']||'').trim();
+      const statusText = archived ? 'مؤرشف' : (status || '-');
+
+      const html = `
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px;font-size:14px;">
+          <div><strong>رقم الطلب:</strong> ${req['رقم الطلب']||''}</div>
+          <div><strong>التاريخ:</strong> ${req['التاريخ']||''}</div>
+          <div><strong>الوقت:</strong> ${req['الوقت']||''}</div>
+          <div><strong>الحالة:</strong> ${statusText}</div>
+          <div><strong>القسم المرسل:</strong> ${req['القسم المرسل']||''}</div>
+          <div><strong>القسم المستلم:</strong> ${req['القسم المستلم']||''}</div>
+          <div><strong>الموظف المعيّن:</strong> ${req['الموظف المعين']||'-'}</div>
+          <div><strong>بدأ التنفيذ بواسطة:</strong> ${req['بدأ التنفيذ بواسطة']||'-'}</div>
+          <div><strong>أغلق بواسطة:</strong> ${req['أغلق بواسطة']||'-'}</div>
+          <div><strong>آخر تحديث بواسطة:</strong> ${req['آخر تحديث بواسطة']||'-'}</div>
+          <div><strong>اسم المرسل:</strong> ${req['اسم المرسل']||'-'}</div>
+          <div><strong>اسم المستلم:</strong> ${req['اسم المستلم']||'-'}</div>
+        </div>
+        <div style="margin-top:12px;font-size:14px;">
+          <strong>العنوان:</strong>
+          <div style="margin-top:4px;">${req['العنوان']||''}</div>
+        </div>
+        <div style="margin-top:12px;font-size:14px;">
+          <strong>الوصف:</strong>
+          <div style="margin-top:4px;white-space:pre-wrap;">${req['الوصف']||''}</div>
+        </div>
+        <div style="margin-top:12px;font-size:14px;">
+          <strong>المرفق:</strong>
+          ${
+            req['الملف']
+            ? `<a href="/uploads/${req['الملف']}" target="_blank" style="margin-right:4px;color:#1565c0;text-decoration:underline;"><i class="fas fa-paperclip"></i> فتح المرفق</a>`
+            : `<span style="color:#9e9e9e">لا يوجد مرفق</span>`
+          }
+        </div>
+      `;
+      document.getElementById('requestDetailsBody').innerHTML = html;
+      document.getElementById('requestModal').style.display = 'flex';
+    }
+
+    function closeRequestModal(){
+      document.getElementById('requestModal').style.display = 'none';
+    }
+
+    async function loadRequestChat(){
+      if(!currentRequestDetails){
+        showToast('لا يوجد طلب محدد','error');
+        return;
+      }
+      const reqId = currentRequestDetails['رقم الطلب'];
+
+      try{
+        // عدّل المسار حسب الباك إند عندك لو مختلف
+        const res = await fetch('/api/get_request_chat', {
+          method:'POST',
+          headers:{'Content-Type':'application/json'},
+          body: JSON.stringify({ request_id: reqId })
+        });
+        const data = await res.json();
+        renderChat(Array.isArray(data) ? data : []);
+      }catch(e){
+        console.error(e);
+        showToast('تعذر تحميل المحادثة','error');
+      }
+    }
+
+    function renderChat(messages){
+      const container = document.getElementById('chatBody');
+      if(!messages.length){
+        container.innerHTML = '<div class="no-requests">لا توجد رسائل في المحادثة.</div>';
+      }else{
+        container.innerHTML = messages.map(m=>{
+          const sender = m.sender || m['المرسل'] || m['sender_name'] || '-';
+          const dept   = m.department || m['القسم'] || '';
+          const role   = m.role || m['role'] || '';
+          const ts     = m.timestamp || m['الوقت'] || m['time'] || '';
+          const text   = m.message || m['الرسالة'] || m['text'] || '';
+
+          return `
+            <div style="border:1px solid #e3f2fd;border-radius:10px;padding:8px 10px;margin-bottom:6px;">
+              <div style="font-size:13px;color:#1565c0;font-weight:600;">
+                ${sender}
+                ${dept ? ` - <span style="color:#607d8b">${dept}</span>` : ''}
+                ${role ? ` - <span style="color:#9e9e9e">${role}</span>` : ''}
+              </div>
+              <div style="font-size:12px;color:#9e9e9e;margin:3px 0 5px;">${ts}</div>
+              <div style="font-size:14px;color:#37474f;white-space:pre-wrap;">${text}</div>
+            </div>
+          `;
+        }).join('');
+      }
+      document.getElementById('chatModal').style.display='flex';
+    }
+
+    function closeChatModal(){
+      document.getElementById('chatModal').style.display='none';
+    }
+
+    /* ===== تصدير الطلبات إلى CSV ===== */
+
+    function exportRequestsCSV(exportAll){
+      const list = exportAll ? allRequests.slice() : getFilteredRequests();
+      if(!list.length){
+        showToast('لا توجد بيانات لتصديرها','info');
+        return;
+      }
+
+      const headers = [
+        'رقم الطلب','التاريخ','الوقت','العنوان','الوصف',
+        'القسم المرسل','القسم المستلم','الحالة','الموظف المعين',
+        'آخر تحديث بواسطة','بدأ التنفيذ بواسطة','أغلق بواسطة',
+        'الملف','اسم المرسل','اسم المستلم','مؤرشف'
+      ];
+
+      const rows = [];
+      rows.push(headers.join(','));
+
+      list.forEach(r=>{
+        const row = headers.map(h=>{
+          let v = r[h] != null ? r[h].toString() : '';
+          v = v.replace(/"/g,'""');
+          if(v.includes(',') || v.includes('\n')) v = `"${v}"`;
+          return v;
+        }).join(',');
+        rows.push(row);
+      });
+
+      const blob = new Blob([rows.join('\n')], {type:'text/csv;charset=utf-8;'});
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      const stamp = new Date().toISOString().slice(0,10);
+      a.href = url;
+      a.download = `sevens_requests_${exportAll ? 'all' : 'filtered'}_${stamp}.csv`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }
+
+    function exportSingleRequestToCSV(){
+      if(!currentRequestDetails){
+        showToast('لا يوجد طلب محدد','info');
+        return;
+      }
+      exportRequestsCSV(false); // أبسط شيء: يصدّر الطلبات الظاهرة (وهو من ضمنها)
+      showToast('تم تصدير الطلبات الظاهرة، من ضمنها هذا الطلب','info');
+    }
+
+    /* ================== Users Management ================== */
+
+    async function loadUsers(){
+      try{
+        const res = await fetch('/api/hr/list_users');
+        const data = await res.json();
+        allUsers = Array.isArray(data) ? data : [];
+        renderUsers();
+        buildDepartmentsTab();
+      }catch(e){
+        console.error('loadUsers error', e);
+      }
+    }
+
+    function getFilteredUsers(){
+      const q = (document.getElementById('userSearch').value||'').toLowerCase().trim();
+      const statusFilter = document.getElementById('userStatusFilter').value || '';
+
+      let list = allUsers.slice();
+
+      if(statusFilter){
+        list = list.filter(u=>(u['الحالة']||'').includes(statusFilter));
+      }
+
+      if(q){
+        list = list.filter(u=>{
+          return [
+            u['الاسم'],
+            u['البريد الإلكتروني'],
+            u['القسم'],
+            u['الصلاحية']
+          ].map(x=>(x||'').toString().toLowerCase()).some(v=>v.includes(q));
+        });
+      }
+
+      return list;
+    }
+
+    function renderUsers(){
+      const body = document.getElementById('usersBody');
+      const list = getFilteredUsers();
+
+      if(!list.length){
+        body.innerHTML = '<tr><td colspan="7" class="no-requests">لا توجد بيانات مطابقة</td></tr>';
+        return;
+      }
+
+      body.innerHTML = list.map(u=>`
+        <tr>
+          <td>${u['الاسم']||''}</td>
+          <td>${u['الصلاحية']||''}</td>
+          <td>${u['كلمة المرور']||''}</td>
+          <td>${u['البريد الإلكتروني']||''}</td>
+          <td>${u['القسم']||''}</td>
+          <td>${u['الحالة']||''}</td>
+          <td class="action-btns">
+            <button class="btn btn-outline" onclick="viewUser('${u['البريد الإلكتروني']}')">
+              <i class="fas fa-eye"></i> عرض
+            </button>
+            <button class="btn btn-outline" onclick="editUser('${u['البريد الإلكتروني']}')">
+              <i class="fas fa-edit"></i> تعديل
+            </button>
+            ${
+              u['الحالة']==='نشط'
+              ? `<button class="btn btn-danger" onclick="archiveUser('${u['البريد الإلكتروني']}')"><i class="fas fa-box-archive"></i> أرشفة</button>`
+              : `<button class="btn btn-green" onclick="unarchiveUser('${u['البريد الإلكتروني']}')"><i class="fas fa-undo"></i> استرجاع</button>`
+            }
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    function openUserModal(){
+      editingUserEmail = null;
+      document.getElementById('userModalTitle').textContent = 'إضافة مستخدم';
+      clearUserModal();
+      document.getElementById('userModal').style.display = 'flex';
+    }
+
+    function closeUserModal(){
+      document.getElementById('userModal').style.display = 'none';
+    }
+
+    function clearUserModal(){
+      ['u_name','u_role','u_password','u_email','u_department'].forEach(id=>{
+        document.getElementById(id).value = '';
+      });
+      document.getElementById('u_status').value = 'نشط';
+    }
+
+    function editUser(email){
+      const u = allUsers.find(x=>x['البريد الإلكتروني']===email);
+      if(!u) return;
+      editingUserEmail = email;
+      document.getElementById('userModalTitle').textContent = 'تعديل مستخدم';
+      document.getElementById('u_name').value       = u['الاسم']||'';
+      document.getElementById('u_role').value       = u['الصلاحية']||'';
+      document.getElementById('u_password').value   = u['كلمة المرور']||'';
+      document.getElementById('u_email').value      = u['البريد الإلكتروني']||'';
+      document.getElementById('u_department').value = u['القسم']||'';
+      document.getElementById('u_status').value     = u['الحالة']||'نشط';
+      document.getElementById('userModal').style.display = 'flex';
+    }
+
+    function viewUser(email){
+      const u = allUsers.find(x=>x['البريد الإلكتروني']===email);
+      if(!u) return;
+
+      const html = `
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px;font-size:14px;">
+          <div><strong>الاسم:</strong> ${u['الاسم']||''}</div>
+          <div><strong>البريد الإلكتروني:</strong> ${u['البريد الإلكتروني']||''}</div>
+          <div><strong>القسم:</strong> ${u['القسم']||''}</div>
+          <div><strong>الصلاحية:</strong> ${u['الصلاحية']||''}</div>
+          <div><strong>الحالة:</strong> ${u['الحالة']||''}</div>
+          <div><strong>كلمة المرور:</strong> ${u['كلمة المرور']||''}</div>
+        </div>
+      `;
+      document.getElementById('userViewBody').innerHTML = html;
+      document.getElementById('userViewModal').style.display = 'flex';
+    }
+
+    function closeUserViewModal(){
+      document.getElementById('userViewModal').style.display = 'none';
+    }
+
+    async function saveUser(){
+      const name = document.getElementById('u_name').value.trim();
+      const role = document.getElementById('u_role').value.trim();
+      const pass = document.getElementById('u_password').value.trim();
+      const email= document.getElementById('u_email').value.trim();
+      const dept = document.getElementById('u_department').value.trim();
+      const status=document.getElementById('u_status').value.trim();
+
+      if(!name || !role || !pass || !email || !dept){
+        showToast('يرجى تعبئة جميع الحقول','error');
+        return;
+      }
+
+      const payload = {
+        name: name,
+        role: role,
+        password: pass,
+        email: email,
+        department: dept,
+        status: status
+      };
+
+      const url = editingUserEmail ? '/api/hr/update_user' : '/api/hr/add_user';
+
+      try{
+        const res = await fetch(url,{
+          method:'POST',
+          headers:{'Content-Type':'application/json'},
+          body: JSON.stringify(payload)
+        });
+        const data = await res.json();
+        if(data.success){
+          showToast('تم الحفظ بنجاح ✅','success');
+          closeUserModal();
+          loadUsers();
+        }else{
+          showToast('فشل الحفظ ❌','error');
+        }
+      }catch(e){
+        console.error(e);
+        showToast('فشل الاتصال بالخادم','error');
+      }
+    }
+
+    async function archiveUser(email){
+      if(!confirm('تأكيد أرشفة المستخدم؟')) return;
+      try{
+        const res = await fetch('/api/hr/archive_user',{
+          method:'POST',
+          headers:{'Content-Type':'application/json'},
+          body: JSON.stringify({email:email,status:'مؤرشف'})
+        });
+        const data = await res.json();
+        if(data.success){
+          showToast('تمت الأرشفة ✅','success');
+          loadUsers();
+        }else{
+          showToast('فشل الأرشفة ❌','error');
+        }
+      }catch(e){
+        console.error(e);
+        showToast('فشل الاتصال بالخادم','error');
+      }
+    }
+
+    async function unarchiveUser(email){
+      if(!confirm('تأكيد استعادة المستخدم؟')) return;
+      try{
+        const res = await fetch('/api/hr/archive_user',{
+          method:'POST',
+          headers:{'Content-Type':'application/json'},
+          body: JSON.stringify({email:email,status:'نشط'})
+        });
+        const data = await res.json();
+        if(data.success){
+          showToast('تمت الاستعادة ✅','success');
+          loadUsers();
+        }else{
+          showToast('فشل الاستعادة ❌','error');
+        }
+      }catch(e){
+        console.error(e);
+        showToast('فشل الاتصال بالخادم','error');
+      }
+    }
+
+    /* ===== تصدير المستخدمين إلى CSV ===== */
+    function exportUsersCSV(){
+      const list = getFilteredUsers();
+      if(!list.length){
+        showToast('لا توجد بيانات لتصديرها','info');
+        return;
+      }
+
+      const headers = ['الاسم','الصلاحية','كلمة المرور','البريد الإلكتروني','القسم','الحالة'];
+      const rows = [];
+      rows.push(headers.join(','));
+
+      list.forEach(u=>{
+        const row = headers.map(h=>{
+          let v = u[h] != null ? u[h].toString() : '';
+          v = v.replace(/"/g,'""');
+          if(v.includes(',') || v.includes('\n')) v = `"${v}"`;
+          return v;
+        }).join(',');
+        rows.push(row);
+      });
+
+      const blob = new Blob([rows.join('\n')], {type:'text/csv;charset=utf-8;'});
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      const stamp = new Date().toISOString().slice(0,10);
+      a.href = url;
+      a.download = `sevens_users_filtered_${stamp}.csv`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }
+
+    /* ================== Departments Tab ================== */
+
+    function buildDepartmentsTab(){
+      const container = document.getElementById('departmentsContent');
+      if(!container) return;
+
+      if(!allUsers.length && !allRequests.length){
+        container.innerHTML = '<div class="no-requests">لا توجد بيانات حالياً.</div>';
+        return;
+      }
+
+      const map = new Map();
+
+      // من المستخدمين
+      allUsers.forEach(u=>{
+        const dep = (u['القسم'] || '').trim() || 'غير محدد';
+        if(!map.has(dep)) map.set(dep,{users:0,sent:0,received:0});
+        map.get(dep).users++;
+      });
+
+      // من الطلبات
+      allRequests.forEach(r=>{
+        const senderDep   = (r['القسم المرسل']   || '').trim() || null;
+        const receiverDep = (r['القسم المستلم'] || '').trim() || null;
+
+        if(senderDep){
+          if(!map.has(senderDep)) map.set(senderDep,{users:0,sent:0,received:0});
+          map.get(senderDep).sent++;
+        }
+
+        if(receiverDep){
+          if(!map.has(receiverDep)) map.set(receiverDep,{users:0,sent:0,received:0});
+          map.get(receiverDep).received++;
+        }
+      });
+
+      if(!map.size){
+        container.innerHTML = '<div class="no-requests">لا توجد أقسام.</div>';
+        return;
+      }
+
+      const rows = [...map.entries()].sort((a,b)=>b[1].users - a[1].users);
+
+      const html = `
+        <div style="overflow:auto">
+          <table>
+            <thead>
+              <tr>
+                <th>القسم</th>
+                <th>عدد المستخدمين</th>
+                <th>عدد الطلبات الصادرة</th>
+                <th>عدد الطلبات الواردة</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${
+                rows.map(([dep,stats])=>`
+                  <tr>
+                    <td>${dep}</td>
+                    <td>${stats.users}</td>
+                    <td>${stats.sent}</td>
+                    <td>${stats.received}</td>
+                  </tr>
+                `).join('')
+              }
+            </tbody>
+          </table>
+        </div>
+      `;
+
+      container.innerHTML = html;
+    }
+
+    /* ================== Stats Bar ================== */
+    function updateStatsBar(){
+      const bar = document.getElementById('statsBar');
+      if(!bar) return;
+
+      const total = allRequests.length;
+      const newCount = allRequests.filter(r=>(r['الحالة']||'').includes('جديد')).length;
+      const inProgress = allRequests.filter(r=>{
+        const s = (r['الحالة']||'');
+        return s.includes('جاري') || s.includes('قيد');
+      }).length;
+      const closed = allRequests.filter(r=>(r['الحالة']||'').includes('مغلق')).length;
+      const archived = allRequests.filter(r=>parseArchivedFlag(r['مؤرشف'])).length;
+
+      bar.innerHTML = `
+        <div class="stat-card">
+          <div class="stat-label"><i class="fas fa-layer-group"></i> إجمالي الطلبات</div>
+          <div class="stat-value">${total}</div>
+          <div class="stat-pill">كل الحالات</div>
+        </div>
+        <div class="stat-card stat-card--new">
+          <div class="stat-label"><i class="fas fa-star"></i> الطلبات الجديدة</div>
+          <div class="stat-value">${newCount}</div>
+          <div class="stat-pill">حالة: جديد</div>
+        </div>
+        <div class="stat-card stat-card--progress">
+          <div class="stat-label"><i class="fas fa-spinner"></i> جاري التنفيذ / المراجعة</div>
+          <div class="stat-value">${inProgress}</div>
+          <div class="stat-pill">قيد المراجعة / جاري التنفيذ</div>
+        </div>
+        <div class="stat-card stat-card--closed">
+          <div class="stat-label"><i class="fas fa-check-circle"></i> الطلبات المغلقة</div>
+          <div class="stat-value">${closed}</div>
+          <div class="stat-pill">مغلق</div>
+        </div>
+        <div class="stat-card stat-card--archived">
+          <div class="stat-label"><i class="fas fa-box-archive"></i> المؤرشفة</div>
+          <div class="stat-value">${archived}</div>
+          <div class="stat-pill">لا تظهر إلا هنا</div>
+        </div>
+      `;
+    }
+
+    /* ================== Logout ================== */
+    function logout(){
+      if(confirm('تأكيد تسجيل الخروج؟')){
+        localStorage.removeItem('sevens_user');
+        location.href='Login.html';
+      }
+    }
+  </script>
+</body>
+</html>

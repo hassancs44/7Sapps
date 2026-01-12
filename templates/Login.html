@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>تسجيل الدخول | SEVENS</title>
+
+  <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+
+  <style>
+    * { margin:0; padding:0; box-sizing:border-box; font-family:'Tajawal',sans-serif; }
+
+    body {
+      background: linear-gradient(135deg, #1e88e5, #29b6f6);
+      min-height: 100vh;
+      display: flex; justify-content:center; align-items:center;
+      padding: 20px; position: relative; overflow:hidden;
+    }
+
+    body::before {
+      content:''; position:absolute; top:0; left:0;
+      width:100%; height:100%;
+      background: radial-gradient(circle, rgba(255,255,255,0.09) 0%, rgba(255,255,255,0) 70%);
+      z-index:-1;
+    }
+
+    .login-container {
+      background: rgba(255,255,255,0.97);
+      width:100%; max-width:420px;
+      padding:40px; border-radius:22px;
+      box-shadow:0 22px 45px rgba(0,0,0,0.12);
+      text-align:center;
+    }
+
+    .logo-box {
+      width:110px; height:110px; background:white;
+      margin:0 auto 25px;
+      border-radius:20px;
+      display:flex; justify-content:center; align-items:center;
+      box-shadow:0 8px 20px rgba(0,0,0,0.08);
+    }
+
+    .logo-box img { width:75px; height:75px; object-fit:contain; }
+
+    .login-title {
+      font-size:26px; font-weight:700;
+      color:#0d47a1; margin-bottom:25px;
+    }
+
+    .input-field { margin-bottom:18px; position:relative; }
+    .input-field input {
+      width:100%; padding:14px 20px;
+      border:2px solid #e3f2fd;
+      border-radius:14px; background:#fafafa;
+      font-size:16px; font-weight:500;
+      transition:0.25s;
+    }
+
+    .input-field input:focus {
+      border-color:#2196f3;
+      box-shadow:0 0 0 3px rgba(33,150,243,0.15);
+    }
+
+    .toggle-password {
+      position:absolute; left:15px; top:50%;
+      transform:translateY(-50%);
+      font-size:18px; cursor:pointer; color:#1976d2;
+    }
+
+    .btn-login {
+      width:100%; padding:15px;
+      border:none; border-radius:14px;
+      font-size:18px; font-weight:700;
+      background:linear-gradient(to right,#2196f3,#1976d2);
+      color:white; cursor:pointer;
+      margin-top:15px; transition:0.25s;
+      box-shadow:0 5px 12px rgba(33,150,243,0.3);
+    }
+
+    .btn-login:hover { transform:translateY(-2px); }
+    .footer-links { margin-top:22px; font-size:14px; }
+    .footer-links a { color:#1e88e5; text-decoration:none; font-weight:600; }
+
+    /* رسائل التوست */
+    .toast {
+      position:fixed; bottom:25px; right:25px;
+      padding:12px 18px;
+      background:#323232; color:white;
+      border-radius:10px; opacity:0; transform:translateY(20px);
+      transition:0.4s; z-index:9999; font-size:15px;
+    }
+    .toast.show { opacity:1; transform:translateY(0); }
+
+    /* Modal تغيير كلمة المرور */
+    #forceResetModal {
+      position:fixed; top:0; left:0; width:100%; height:100%;
+      background:rgba(0,0,0,0.6);
+      display:none; justify-content:center; align-items:center;
+      z-index:9999;
+    }
+    .modal-box {
+      background:white; padding:25px; width:90%; max-width:380px;
+      border-radius:14px; text-align:center;
+      box-shadow:0 5px 20px rgba(0,0,0,0.2);
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="login-container">
+
+    <div class="logo-box">
+      <img src="{{ url_for('static', filename='7s.jpg') }}">
+    </div>
+
+    <div class="login-title">نظام إدارة الطلبات</div>
+
+    <div class="input-field">
+      <input type="email" id="email" placeholder="البريد الإلكتروني">
+    </div>
+
+    <div class="input-field">
+      <input type="password" id="password" placeholder="كلمة المرور">
+      <i class="fas fa-eye toggle-password" id="togglePassword"></i>
+    </div>
+
+    <button class="btn-login" id="loginBtn">تسجيل الدخول</button>
+
+    <div class="footer-links">
+      <a href="ForgotYourPassword.html">نسيت كلمة المرور؟</a>
+    </div>
+  </div>
+
+  <!-- 🔵 نافذة تغيير كلمة المرور -->
+  <div id="forceResetModal">
+    <div class="modal-box">
+      <h3 style="color:#1e88e5;">تغيير كلمة المرور</h3>
+      <p>يجب عليك تعيين كلمة مرور جديدة لإكمال الدخول.</p>
+
+      <input id="newPass1" type="password" placeholder="كلمة المرور الجديدة"
+        style="width:100%; padding:10px; margin-top:12px; border:1px solid #ccc; border-radius:8px">
+
+      <input id="newPass2" type="password" placeholder="تأكيد كلمة المرور"
+        style="width:100%; padding:10px; margin-top:10px; border:1px solid #ccc; border-radius:8px">
+
+      <div id="resetError" style="color:#d32f2f; display:none; margin-top:10px;"></div>
+
+      <button onclick="submitNewPassword()" style="
+        margin-top:15px; padding:12px; width:100%;
+        border:none; background:#1e88e5; color:white;
+        font-size:16px; border-radius:8px; font-weight:700;
+      ">حفظ</button>
+    </div>
+  </div>
+
+<script>
+  // =============== Toast Function =================
+  function showToast(msg){
+    const t = document.createElement("div");
+    t.className = "toast show";
+    t.innerText = msg;
+    document.body.appendChild(t);
+    setTimeout(()=>{ t.style.opacity=0; }, 2500);
+    setTimeout(()=>{ t.remove(); }, 3200);
+  }
+
+  // =============== إظهار/إخفاء كلمة المرور =================
+  document.getElementById("togglePassword").onclick = function(){
+    const p = document.getElementById("password");
+    p.type = (p.type === "password") ? "text" : "password";
+    this.classList.toggle("fa-eye-slash");
+  };
+
+  // =============== تسجيل الدخول =================
+  document.getElementById("loginBtn").onclick = login;
+  document.addEventListener("keydown", e => { if(e.key==="Enter") login(); });
+
+  let loggedEmail = "";
+
+  function login(){
+    const email = document.getElementById("email").value.trim();
+    const password = document.getElementById("password").value.trim();
+
+    if(!email || !password){
+      showToast("يرجى تعبئة جميع الحقول");
+      return;
+    }
+
+    fetch("/api/login", {
+      method:"POST",
+      headers:{ "Content-Type":"application/json" },
+      body:JSON.stringify({ email, password })
+    })
+    .then(res=>res.json())
+    .then(data=>{
+
+      if(!data.success){
+        showToast(data.message || "بيانات الدخول غير صحيحة");
+        return;
+      }
+
+      const user = data.user;
+      localStorage.setItem("sevens_user", JSON.stringify(user));
+
+      // ⭐ لو required force reset
+      if (user.force_reset === true || user.force_reset === "1" || user.force_reset === 1) {
+        loggedEmail = user.email;
+        document.getElementById("forceResetModal").style.display = "flex";
+        return; // إيقاف التوجيه
+      }
+
+      // ================= توجيه حسب الدور ================
+      const role = user.role || "";
+
+      if (data.redirect){
+        window.location.href = data.redirect;
+      }
+      else if (role === "موظف"){
+        window.location.href = "EmployeePage.html";
+      }
+      else if (role === "مدير قسم"){
+        window.location.href = "DepartmentManagerPage.html";
+      }
+      else if (role === "مدير عام"){
+        window.location.href = "GeneralManager.html";
+      }
+      else if (role.includes("موارد")){
+        window.location.href = "HrPage.html";
+      }
+      else {
+        window.location.href = "EmployeePage.html";
+      }
+    })
+    .catch(()=>{
+      showToast("خطأ في الاتصال بالخادم");
+    });
+  }
+
+  // =============== إرسال كلمة مرور جديدة =================
+  function submitNewPassword(){
+    const p1 = document.getElementById("newPass1").value.trim();
+    const p2 = document.getElementById("newPass2").value.trim();
+    const err = document.getElementById("resetError");
+
+    if(!p1 || !p2){
+      err.innerText = "املأ جميع الحقول";
+      err.style.display = "block";
+      return;
+    }
+    if(p1 !== p2){
+      err.innerText = "كلمتا المرور غير متطابقتين";
+      err.style.display = "block";
+      return;
+    }
+
+    fetch("/api/force_reset_password", {
+      method:"POST",
+      headers:{ "Content-Type":"application/json" },
+      body:JSON.stringify({ email: loggedEmail, newPassword: p1 })
+    })
+    .then(res=>res.json())
+    .then(data=>{
+      if(data.success){
+        alert("تم تغيير كلمة المرور. سجل دخولك مرة أخرى.");
+        location.href = "/Login.html";
+      } else {
+        err.innerText = data.message || "خطأ غير متوقع";
+        err.style.display = "block";
+      }
+    })
+    .catch(()=>{
+      err.innerText = "تعذر الاتصال بالخادم";
+      err.style.display = "block";
+    });
+  }
+</script>
+
+</body>
+</html>

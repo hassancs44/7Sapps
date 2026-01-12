@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>STOR7S | المشتريات والمستودع</title>
+
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&display=swap');
+body{
+  font-family:Tajawal;
+  background:#0b1220;
+  color:#fff;
+  margin:0;
+  line-height:1.7;
+  letter-spacing:.3px;
+}
+
+.topbar{background:#101d36;padding:15px;display:flex;justify-content:space-between;align-items:center;}
+.btn{
+  background:#1d3b6b;
+  border:0;
+  padding:10px 18px;
+  border-radius:8px;
+  color:#fff;
+  cursor:pointer;
+  font-size:14px;
+  transition:.2s;
+}
+.btn:hover{
+  background:#24497e;
+  transform:scale(.97);
+}
+.btn:active{
+  transform:scale(.94);
+}
+
+.btn.red{background:#ef4444;}
+.btn.green{background:#22c55e;}
+.btn.yellow{background:#eab308;}
+.card{
+  background:#0f1b33;
+  padding:25px;
+  border-radius:14px;
+  margin:15px;
+  border:1px solid rgba(255,255,255,.05);
+  box-shadow:0 4px 14px rgba(0,0,0,.35);
+  transition:.2s;
+}
+.card:hover{
+  border-color:rgba(255,255,255,.12);
+}
+
+input,select,textarea{width:100%;padding:10px;margin-top:5px;border-radius:8px;background:#162544;color:#fff;border:1px solid #243b55;}
+table{
+  width:100%;
+  border-collapse:separate;
+  border-spacing:0 8px;
+  margin-top:15px;
+}
+th,td{
+  padding:12px 14px;
+  border-bottom:none;
+  background:rgba(255,255,255,.03);
+}
+th{
+  background:rgba(255,255,255,.07);
+  font-weight:600;
+}
+tr:hover td{
+  background:rgba(255,255,255,.08);
+}
+
+th,td{padding:10px;border-bottom:1px solid rgba(255,255,255,.1);}
+nav{display:flex;gap:10px;margin:10px;}
+nav button{flex:1;padding:15px;border-radius:8px;border:0;background:#101d36;color:#fff;cursor:pointer;}
+nav button.active{background:#3b82f6;}
+.hidden{display:none;}
+</style>
+</head>
+
+<body>
+
+<div class="topbar">
+  <div>📌 STOR7S | المشتريات والمستودع</div>
+  <button class="btn" onclick="logout()">تسجيل خروج</button>
+</div>
+
+<nav>
+  <button class="active" onclick="showTab('orders')">📥 الطلبات المعتمدة</button>
+  <button onclick="showTab('warehouse')">🏷️ المستودع</button>
+</nav>
+
+<!-- ========================= الطلبات ========================= -->
+<div id="orders" class="card">
+  <h3>📥 الطلبات الجاهزة للتنفيذ</h3>
+  <button class="btn" onclick="loadOrders()">🔄 تحديث</button>
+  <table id="ordersTable"><tbody></tbody></table>
+</div>
+
+<!-- ========================= المستودع ========================= -->
+<div id="warehouse" class="card hidden">
+  <h3>🏷️ إدارة المستودع</h3>
+
+  <h4>بحث / فلاتر</h4>
+  <input id="searchItem" placeholder="ابحث باسم الصنف او الكود" onkeyup="filterWarehouse()">
+
+  <h4>➕ إضافة صنف جديد للمستودع</h4>
+
+<input id="w_code" placeholder="كود الصنف (إجباري)">
+<input id="w_name" placeholder="اسم الصنف">
+<input id="w_cat"  placeholder="الفئة (مثال: إلكترونيات / مستلزمات)">
+<input id="w_qty"  type="number" placeholder="الكمية الحالية">
+<input id="w_min"  type="number" placeholder="حد إعادة الطلب (تنبيه)">
+<input id="w_loc"  placeholder="الموقع (مثال: رف A3 / مخزن 2)">
+<select id="w_state">
+  <option value="متاح">متاح</option>
+  <option value="خارج الخدمة">خارج الخدمة</option>
+  <option value="مفقود / تالف">مفقود / تالف</option>
+</select>
+
+<button class="btn green" onclick="addItem()">💾 حفظ الصنف</button>
+
+
+  <h4>جميع الأصناف</h4>
+  <table id="warehouseTable"><tbody></tbody></table>
+</div>
+<!-- ================== Modal إجراء الطلب ================== -->
+<div id="actionModal" class="hidden"
+style="position:fixed;top:0;left:0;width:100%;height:100%;
+background:rgba(0,0,0,.55);display:none;justify-content:center;align-items:center;z-index:9999;">
+  <div style="
+    background:#0f1b33;
+    padding:28px;
+    border-radius:12px;
+    width:360px;
+    text-align:center;
+    border:1px solid rgba(255,255,255,.07);
+    box-shadow:0 8px 30px rgba(0,0,0,.4);
+  ">
+    <h3 style="margin-bottom:18px;font-size:18px;">⚙️ تنفيذ الإجراء للطلب رقم <span id="modalReq"></span></h3>
+    <div style="display:flex;flex-direction:column;gap:10px;">
+      <button class="btn green" onclick="doIssue()">🚚 صرف من المستودع</button>
+      <button class="btn yellow" onclick="doBuy()">🧾 عملية شراء</button>
+      <button class="btn red" onclick="doIT()">💻 إحالة لقسم IT</button>
+      <button class="btn" style="background:#444" onclick="closeModal()">إغلاق</button>
+    </div>
+  </div>
+</div>
+
+
+<script>
+const API = "/api/core/purchasing";
+const API_W = "/api/core/purchasing";
+
+
+// ================= TAB CONTROL =================
+function showTab(id){
+  // تفعيل الزر المختار
+  document.querySelectorAll("nav button").forEach(b => b.classList.remove("active"));
+  event.currentTarget.classList.add("active");
+
+  // إظهار الكارد المطلوب
+  document.querySelectorAll(".card").forEach(c => c.classList.add("hidden"));
+  document.getElementById(id).classList.remove("hidden");
+
+  // ✅ تحميل البيانات حسب التاب
+  if (id === "orders") {
+    loadOrders();
+  } else if (id === "warehouse") {
+    loadWarehouse();
+  }
+}
+
+
+// ================= الطلبات =================
+async function loadOrders(){
+  let res = await fetch(API+"/approved");
+  let data = await res.json();
+  let rows="";
+  for(let r of data){
+    rows+=`
+    <tr>
+      <td>${r.رقم_الطلب}</td>
+      <td>${r.الوصف||"-"}</td>
+      <td>
+  ${r.الحالة === "أعيد من IT"
+    ? `<span style="color:#22c55e;font-weight:bold">
+        ✔️ عاد من تقنية المعلومات
+       </span>`
+    : r.الحالة
+  }
+
+  ${r.الحالة === "أعيد من IT"
+    ? `<button onclick="viewIT(${r.رقم_الطلب})">📄 تقرير IT</button>`
+    : ""
+  }
+</td>
+
+      <td>
+  <button class="btn" style="min-width:90px;text-align:center;" onclick="openAction(${r.رقم_الطلب})">⚙️ إجراء</button>
+</td>
+    </tr>`;
+  }
+  document.querySelector("#ordersTable tbody").innerHTML = rows;
+}
+
+// 🚚 صرف مباشر
+async function issue(id){
+  await fetch(API+"/issue",{
+    method:"POST",headers:{"Content-Type":"application/json"},
+    body:JSON.stringify({رقم_الطلب:id})
+  });
+  alert("✔️ تم الصرف وإنشاء عهدة تلقائياً");
+  loadOrders();
+}
+
+// 🧾 شراء
+async function buy(id){
+  await fetch(API+"/buy",{
+    method:"POST",headers:{"Content-Type":"application/json"},
+    body:JSON.stringify({رقم_الطلب:id})
+  });
+  alert("🧾 تم تحويل الطلب إلى شراء");
+  loadOrders();
+}
+
+// 🔁 IT
+async function forwardIT(id){
+  await fetch(API+"/it",{
+    method:"POST",headers:{"Content-Type":"application/json"},
+    body:JSON.stringify({رقم_الطلب:id})
+  });
+  alert("💻 تم تحويل الطلب إلى قسم التقنية");
+  loadOrders();
+}
+
+// ================= المستودع =================
+async function loadWarehouse(){
+  let res = await fetch("/api/core/purchasing/warehouse");
+  let data = await res.json();
+  let rows = "";
+
+  for(let i of data){
+    let qty = parseInt(i.كمية_حالياً || 0);
+    let min = parseInt(i.حد_إعادة_الطلب || 0);
+
+    let color = "";
+    if(qty === 0) color = "background:#7f1d1d";
+    else if(qty <= min) color = "background:#78350f";
+
+    rows += `
+      <tr style="${color}">
+        <td>${i.كود}</td>
+        <td>${i.اسم}</td>
+        <td>${i.فئة}</td>
+        <td>${qty}</td>
+        <td>${min}</td>
+        <td>${i.الموقع}</td>
+        <td>${i.الحالة}</td>
+      </tr>`;
+  }
+
+  document.querySelector("#warehouseTable tbody").innerHTML = rows;
+}
+
+function filterWarehouse(){
+  let q = document.getElementById("searchItem").value.toLowerCase();
+  document.querySelectorAll("#warehouseTable tbody tr").forEach(r=>{
+    r.style.display = r.textContent.toLowerCase().includes(q)?"":"none";
+  });
+}
+
+async function addItem(){
+  let data = {
+    كود:  document.getElementById("w_code").value,
+    اسم:  document.getElementById("w_name").value,
+    فئة:  document.getElementById("w_cat").value,
+    كمية_حالياً: document.getElementById("w_qty").value,
+    حد_إعادة_الطلب: document.getElementById("w_min").value,
+    الموقع: document.getElementById("w_loc").value,
+    الحالة: document.getElementById("w_state").value,
+  };
+
+  let res = await fetch("/api/core/purchasing/warehouse/add", {
+    method:"POST",
+    headers:{"Content-Type":"application/json"},
+    body:JSON.stringify(data)
+  });
+
+  let r = await res.json();
+  alert(r.msg);
+  loadWarehouse();
+}
+
+function logout(){localStorage.clear();location.reload();}
+// تحميل الطلبات + المستودع عند فتح الصفحة
+loadOrders();
+loadWarehouse();
+
+
+    let currentReq = null;
+
+function openAction(id){
+  const row = [...document.querySelectorAll("#ordersTable tbody tr")]
+    .find(r => r.textContent.includes(id));
+
+  // لو الطلب راجع من IT اعرض التقرير أولًا
+  if(row && row.textContent.includes("عاد من تقنية المعلومات")){
+    viewIT(id);
+  }
+
+  currentReq = id;
+  document.getElementById("modalReq").innerText = id;
+  document.getElementById("actionModal").style.display = "flex";
+}
+
+
+function closeModal(){
+  document.getElementById("actionModal").style.display = "none";
+  document.getElementById("actionModal").classList.add("hidden");
+}
+
+async function doIssue(){
+  let res = await fetch(`${API}/items/${currentReq}`);
+  let items = await res.json();
+
+  if(items.length === 0){
+    alert("❌ لا توجد عناصر مرتبطة بالطلب");
+    return;
+  }
+
+  let options = items.map(i =>
+    `${i.كود} | ${i.اسم} | الكمية المطلوبة: ${i.كمية}`
+  ).join("\n");
+
+  let selected = prompt("اختر الصنف:\n" + options);
+  if(!selected) return;
+
+  let code = selected.split("|")[0].trim();
+  let qty  = parseInt(prompt("الكمية المراد صرفها:",1));
+
+  let r = await fetch(`${API}/issue`,{
+    method:"POST",
+    headers:{"Content-Type":"application/json"},
+    body:JSON.stringify({
+      رقم_الطلب: currentReq,
+      كود: code,
+      كمية: qty
+    })
+  });
+
+  let data = await r.json();
+  alert(data.msg);
+  closeModal();
+  loadOrders();
+  loadWarehouse();
+}
+
+async function doBuy(){
+  const vendor = prompt("اسم المورد:");
+  const price  = prompt("السعر:");
+  const invoice= prompt("رقم/مرجع الفاتورة:");
+
+  await fetch(`${API}/buy`,{
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({
+          رقم_الطلب: currentReq,
+          المورد: vendor,
+          السعر: price,
+          الفاتورة: invoice
+      })
+  });
+  alert("🧾 تم تسجيل عملية الشراء");
+  closeModal();
+  loadOrders();
+}
+
+async function doIT(){
+  await fetch(`${API}/it`,{
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({ رقم_الطلب: currentReq })
+  });
+  alert("💻 تم تحويل الطلب لقسم IT");
+  closeModal();
+  loadOrders();
+}
+
+
+async function action(type){
+    await fetch(`${API}/${type}`,{
+        method:"POST",
+        headers:{"Content-Type":"application/json"},
+        body:JSON.stringify({ رقم_الطلب: currentReq })
+    });
+    alert("✔️ تمت العملية بنجاح");
+    closeModal();
+    loadOrders();
+}
+
+async function viewIT(id){
+  let res = await fetch(`/api/core/purchasing/it-report/${id}`);
+  let data = await res.json();
+  let r = data[0];
+
+  alert(`
+التقييم: ${r.نوع_التقييم}
+التوصية: ${r.التوصية}
+الفني: ${r.اسم_الفني}
+
+${r.الوصف_الفني}
+  `);
+}
+
+</script>
+</body>
+</html>

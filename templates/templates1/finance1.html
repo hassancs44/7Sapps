@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>STOR7S | المالية (Finance)</title>
+
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&display=swap');
+body{font-family:Tajawal;background:#0b1220;color:#fff;margin:0;}
+.topbar{background:#101d36;padding:15px;display:flex;justify-content:space-between;align-items:center;}
+.btn{background:#3b82f6;border:0;padding:10px 15px;border-radius:8px;color:#fff;cursor:pointer;}
+.card{background:#0f1b33;padding:20px;border-radius:12px;margin:10px;}
+input,select{width:100%;padding:10px;margin-top:5px;border-radius:8px;background:#162544;color:#fff;border:1px solid #243b55;}
+table{width:100%;border-collapse:collapse;margin-top:15px;}
+th,td{padding:10px;border-bottom:1px solid rgba(255,255,255,.1);}
+</style>
+</head>
+
+<body>
+
+<div class="topbar">
+  <div>💰 STOR7S | المالية (رقابة فقط)</div>
+  <button class="btn" onclick="logout()">تسجيل خروج</button>
+</div>
+
+<div class="card">
+  <h3>➕ إنشاء طلب جديد </h3>
+
+  <input id="req_desc" placeholder="وصف الطلب">
+  <input id="req_company" placeholder="الشركة">
+  <input id="req_branch" placeholder="الفرع">
+
+  <button class="btn" onclick="createRequest()">📤 إرسال الطلب</button>
+</div>
+
+  <h2>📊 فحص العمليات المالية</h2>
+  <input id="search" placeholder="ابحث برقم الطلب / المورد / نوع الإجراء" onkeyup="filterData()">
+  <button class="btn" onclick="loadData()">🔄 تحديث</button>
+  <h3>🧾 عمليات الشراء</h3>
+<table id="finTable">
+  <thead>
+    <tr>
+      <th>رقم الطلب</th>
+      <th>المورد</th>
+      <th>السعر</th>
+      <th>الفاتورة</th>
+      <th>تاريخ الفاتورة</th>
+      <th>الحالة</th>
+      <th>عرض</th>
+    </tr>
+  </thead>
+  <tbody></tbody>
+</table>
+
+</div>
+
+<script>
+const API = "/api/core/finance";
+
+async function loadData(){
+  let res = await fetch(API+"/purchases");
+  let data = await res.json();
+
+  let rows = "";
+  for(let r of data){
+    rows += `
+    <tr>
+      <td>${r.رقم_الطلب}</td>
+      <td>${r.المورد}</td>
+      <td>${r.السعر}</td>
+      <td>${r.الفاتورة}</td>
+      <td>${r.تاريخ_الفاتورة}</td>
+      <td>${r.الحالة}</td>
+      <td>
+        <button class="btn" onclick="viewFiles('${r.رقم_الطلب}')">📎 مرفقات</button>
+      </td>
+    </tr>`;
+  }
+
+  document.querySelector("#finTable tbody").innerHTML = rows;
+}
+
+
+function filterData(){
+  let q = document.getElementById("search").value.toLowerCase();
+  document.querySelectorAll("#finTable tbody tr").forEach(r=>{
+    r.style.display = r.textContent.toLowerCase().includes(q) ? "" : "none";
+  });
+}
+
+function logout(){
+  localStorage.clear();
+  window.location.href = "/Login.html";
+}
+
+
+// تحميل تلقائي
+loadData();
+
+    async function viewFiles(id){
+  let res = await fetch(API+"/attachments/"+id);
+  let files = await res.json();
+
+  if(files.length === 0){
+    alert("لا توجد مرفقات");
+    return;
+  }
+
+  let list = files.map(f =>
+    `📎 ${f.اسم_الملف}`
+  ).join("\n");
+
+  alert(list);
+}
+
+    async function createRequest(){
+  const desc = document.getElementById("req_desc").value;
+  const company = document.getElementById("req_company").value;
+  const branch = document.getElementById("req_branch").value;
+
+  if(!desc){
+    alert("⚠️ أدخل وصف الطلب");
+    return;
+  }
+
+  let res = await fetch(API+"/create-request",{
+    method:"POST",
+    headers:{"Content-Type":"application/json"},
+    body:JSON.stringify({
+      الوصف: desc,
+      الشركة: company,
+      الفرع: branch
+    })
+  });
+
+  let r = await res.json();
+  alert(r.msg);
+
+  document.getElementById("req_desc").value = "";
+}
+
+</script>
+
+</body>
+</html>

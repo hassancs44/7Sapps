@@ -1,0 +1,1816 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>لوحة الموظف | SEVENS</title>
+  <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+  <style>
+/* 🎨 الأساسيات العامة */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: 'Tajawal', sans-serif;
+}
+
+body {
+  background: #f8fbff;
+  color: #2c3e50;
+  min-height: 100vh;
+}
+
+/* 🧭 الشريط العلوي */
+.navbar {
+  background: white;
+  padding: 18px 30px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.logo-box {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.logo-box img {
+  width: 44px;
+  height: 44px;
+  object-fit: contain;
+  border-radius: 10px;
+}
+
+.logo-box h1 {
+  color: #1e88e5;
+  font-size: 22px;
+  font-weight: 700;
+}
+
+.user-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: #34495e;
+  font-weight: 600;
+}
+
+.logout-btn {
+  background: #e3f2fd;
+  color: #1976d2;
+  border: none;
+  padding: 6px 14px;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: 0.25s;
+}
+
+.logout-btn:hover {
+  background: #bbdefb;
+}
+
+/* 📦 الحاوية والعناوين */
+.container {
+  max-width: 1100px;
+  margin: 30px auto;
+  padding: 0 20px;
+}
+
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 25px;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.page-title {
+  font-size: 26px;
+  color: #0d47a1;
+  font-weight: 700;
+}
+
+.section-title {
+  font-size: 22px;
+  color: #1e88e5;
+  margin: 30px 0 20px;
+  padding-bottom: 10px;
+  border-bottom: 2px solid #e3f2fd;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/* ➕ زر إضافة طلب جديد */
+.new-request-btn {
+  padding: 10px 20px;
+  background: linear-gradient(to right, #2196f3, #1976d2);
+  color: white;
+  border: none;
+  border-radius: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: 0.3s;
+}
+
+.new-request-btn:hover {
+  box-shadow: 0 4px 12px rgba(33, 150, 243, 0.3);
+}
+
+/* 📋 بطاقات الطلبات */
+.requests-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 45px;
+}
+
+/* 🔹 أقسام الطلبات (الوارد / المرسل) */
+.requests-section {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 22px;
+  justify-content: center;
+}
+
+/* 🧾 البطاقة */
+.request-card {
+  background: white;
+  border-radius: 18px;
+  border: 1px solid #e3f2fd;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+  transition: all 0.3s ease;
+  text-align: right;
+  aspect-ratio: 1 / 1;
+  padding: 18px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  position: relative;
+}
+
+.request-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 20px rgba(30, 136, 229, 0.18);
+}
+
+/* 🟦 شريط الحالة */
+.status-header {
+  height: 7px;
+  border-radius: 10px 10px 0 0;
+}
+.status-new { background: #2196f3; }
+.status-in-progress { background: #ff9800; }
+.status-closed { background: #4caf50; }
+.status-rejected { background: #f44336; }
+
+/* 💬 محتوى مختصر وواضح */
+.request-id {
+  font-size: 15px;
+  color: #1565c0;
+  font-weight: 600;
+}
+
+.request-title {
+  font-size: 17px;
+  font-weight: 700;
+  color: #0d47a1;
+  margin: 8px 0;
+  line-height: 1.4;
+  height: 45px;
+  overflow: hidden;
+}
+
+.request-desc {
+  font-size: 14px;
+  color: #607d8b;
+  line-height: 1.6;
+  flex-grow: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-bottom: 10px;
+}
+
+/* 🔘 الحالة والتاريخ */
+.status-info {
+  font-size: 13px;
+  font-weight: 600;
+  color: #555;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #f8fbff;
+  padding: 6px 10px;
+  border-radius: 10px;
+}
+
+/* 🎟️ زر عرض المرفق */
+.view-file-btn {
+  padding: 7px 14px;
+  border-radius: 10px;
+  font-size: 13px;
+  background: linear-gradient(90deg, #42a5f5, #1e88e5);
+  color: white;
+  border: none;
+  cursor: pointer;
+  transition: 0.25s;
+  margin-top: 8px;
+  font-weight: 600;
+}
+.view-file-btn:hover {
+  background: linear-gradient(90deg, #1e88e5, #2196f3);
+  box-shadow: 0 4px 12px rgba(33, 150, 243, 0.25);
+}
+
+/* ✨ وميض البطاقة عند وصول رسالة جديدة */
+.card-glow {
+  border: 2px solid #42a5f5 !important;
+  box-shadow: 0 0 18px rgba(66,165,245,0.75) !important;
+  animation: glowFade 2.5s ease-out;
+}
+
+@keyframes glowFade {
+  0% { box-shadow: 0 0 20px rgba(33,150,243,0.8); }
+  50% { box-shadow: 0 0 25px rgba(33,150,243,0.6); }
+  100% { box-shadow: 0 0 0 rgba(33,150,243,0); }
+}
+
+/* 📤 تصدير الطلبات والفلاتر */
+.export-section {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.export-btn {
+  background: #43a047;
+  color: white;
+  padding: 10px 18px;
+  border: none;
+  border-radius: 10px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: 0.25s;
+}
+
+.export-btn:hover { background: #388e3c; }
+
+#statusFilter {
+  border: 2px solid #e3f2fd;
+  border-radius: 10px;
+  padding: 10px;
+  background: white;
+  color: #0d47a1;
+  font-weight: 600;
+}
+
+#statusFilter:focus {
+  outline: none;
+  border-color: #1e88e5;
+  box-shadow: 0 0 8px rgba(30, 136, 229, 0.3);
+}
+
+/* 📥 نموذج رفع الطلب */
+.request-modal {
+  display: none;
+  position: fixed;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  background: rgba(0, 0, 0, 0.45);
+  justify-content: center;
+  align-items: center;
+  z-index: 2000;
+}
+
+.request-modal-content {
+  background: #fff;
+  width: 90%;
+  max-width: 500px;
+  border-radius: 18px;
+  padding: 30px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+  position: relative;
+  text-align: right;
+}
+
+.form-group { margin-bottom: 20px; }
+
+.form-control {
+  width: 100%;
+  padding: 12px;
+  border: 2px solid #e3f2fd;
+  border-radius: 12px;
+  font-size: 15px;
+  direction: rtl;
+}
+
+.submit-btn {
+  width: 100%;
+  padding: 12px;
+  background: linear-gradient(to right, #2196f3, #1976d2);
+  color: white;
+  border: none;
+  border-radius: 12px;
+  font-weight: 600;
+  font-size: 16px;
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+.submit-btn:hover {
+  background: linear-gradient(to right, #1e88e5, #1565c0);
+}
+
+/* 🗂️ نافذة عرض المرفقات */
+.file-viewer-modal {
+  display: none;
+  position: fixed;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  background: rgba(0, 0, 0, 0.6);
+  justify-content: center;
+  align-items: center;
+  z-index: 3000;
+  padding: 20px;
+}
+
+#ticketDetailsModal .file-viewer-content {
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.file-viewer-content {
+  background: white;
+  border-radius: 16px;
+  padding: 20px;
+  max-width: 800px;
+  width: 100%;
+  max-height: 90vh;
+  overflow: auto;
+  position: relative;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+}
+
+.file-viewer-body { text-align: center; }
+
+.close-btn {
+  position: absolute;
+  top: 10px; left: 15px;
+  font-size: 26px;
+  cursor: pointer;
+  color: #444;
+  transition: 0.2s;
+}
+
+.close-btn:hover { color: #e53935; }
+
+/* 🎛️ الأزرار العامة */
+.save-btn,
+.view-file-btn {
+  color: white;
+  border: none;
+  border-radius: 10px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.25s ease;
+}
+
+.save-btn {
+  padding: 8px 18px;
+  background: linear-gradient(90deg, #1565c0, #1e88e5, #42a5f5);
+  box-shadow: 0 3px 8px rgba(33, 150, 243, 0.25);
+}
+
+/* ✅ هنا صححت النقطة */
+.save-btn:hover {
+  transform: scale(1.05);
+  background: linear-gradient(90deg, #1e88e5, #42a5f5);
+  box-shadow: 0 6px 16px rgba(33, 150, 243, 0.3);
+}
+
+.view-file-btn {
+  padding: 6px 14px;
+  background: linear-gradient(90deg, #2196f3, #42a5f5);
+  box-shadow: 0 3px 6px rgba(33, 150, 243, 0.25);
+  border-radius: 8px;
+}
+
+.view-file-btn:hover {
+  background: linear-gradient(90deg, #1e88e5, #2196f3);
+  box-shadow: 0 5px 12px rgba(33, 150, 243, 0.35);
+}
+
+/* 📊 قائمة تغيير الحالة */
+.status-select {
+  border: 2px solid #e3f2fd;
+  border-radius: 10px;
+  padding: 8px 12px;
+  background: #f1f8ff;
+  color: #1565c0;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  box-shadow: 0 2px 6px rgba(25, 118, 210, 0.1);
+}
+
+.status-select:hover {
+  background: #e3f2fd;
+  box-shadow: 0 3px 10px rgba(25, 118, 210, 0.2);
+}
+
+/* ⏱️ المؤقت */
+.update-section {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.timer-text {
+  background: #f5f9ff;
+  color: #0d47a1;
+  padding: 4px 8px;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 14px;
+  box-shadow: 0 2px 5px rgba(13, 71, 161, 0.1);
+}
+
+/* 🤖 زر الشات العائم */
+.chatbot-float-btn {
+  position: fixed;
+  bottom: 25px;
+  left: 25px;
+  background: linear-gradient(135deg, #42a5f5, #1e88e5);
+  color: white;
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 26px;
+  cursor: pointer;
+  box-shadow: 0 6px 20px rgba(30, 136, 229, 0.3);
+  z-index: 1000;
+}
+
+.chatbot-widget {
+  position: fixed;
+  bottom: 100px;
+  left: 25px;
+  width: 350px;
+  max-height: 520px;
+  background: #fff;
+  border-radius: 18px;
+  overflow: hidden;
+  box-shadow: 0 6px 25px rgba(0, 0, 0, 0.15);
+  display: none;
+  flex-direction: column;
+  z-index: 1000;
+}
+
+/* ✅ هنا برضه صححت النقطة */
+.chatbot-widget.show {
+  display: flex;
+}
+
+.cb-header {
+  background: linear-gradient(135deg, #2196f3, #1565c0);
+  color: white;
+  padding: 12px 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.cb-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 14px;
+  background: #f8fbff;
+}
+
+.cb-msg {
+  margin-bottom: 12px;
+  padding: 10px 14px;
+  border-radius: 12px;
+  max-width: 80%;
+  line-height: 1.6;
+  font-size: 14px;
+}
+
+.cb-msg.user {
+  background: #e3f2fd;
+  color: #0d47a1;
+  margin-left: auto;
+}
+
+.cb-msg.bot {
+  background: #e8f5e9;
+  color: #2e7d32;
+}
+
+.cb-input {
+  display: flex;
+  border-top: 1px solid #e3f2fd;
+}
+
+.cb-input textarea {
+  flex: 1;
+  border: none;
+  padding: 10px;
+  font-family: 'Tajawal';
+  font-size: 14px;
+  resize: none;
+}
+
+.cb-send {
+  background: #1e88e5;
+  color: white;
+  border: none;
+  padding: 0 16px;
+  cursor: pointer;
+}
+
+/* 💬 رسائل دردشة التذكرة */
+.chat-msg {
+  margin-bottom: 12px;
+  padding: 10px 14px;
+  border-radius: 14px;
+  max-width: 75%;
+  word-wrap: break-word;
+  position: relative;
+  font-size: 14px;
+  line-height: 1.6;
+  animation: fadeIn 0.4s ease;
+}
+.chat-msg.me {
+  margin-left: auto;
+  background: #e3f2fd;
+  color: #0d47a1;
+  border-top-right-radius: 0;
+  box-shadow: 0 3px 6px rgba(33,150,243,0.2);
+}
+.chat-msg.other {
+  margin-right: auto;
+  background: #e8f5e9;
+  color: #1b5e20;
+  border-top-left-radius: 0;
+  box-shadow: 0 3px 6px rgba(76,175,80,0.2);
+}
+.chat-meta {
+  font-size: 12px;
+  color: #607d8b;
+  margin-bottom: 4px;
+  display: flex;
+  justify-content: space-between;
+}
+.chat-attachment a {
+  color: #1565c0;
+  font-weight: 600;
+  text-decoration: none;
+}
+.chat-attachment a:hover {
+  text-decoration: underline;
+}
+@keyframes fadeIn {
+  from {opacity:0;transform:translateY(5px);}
+  to {opacity:1;transform:translateY(0);}
+}
+
+/* 🔁 أزرار التبديل بين الوارد والمرسل */
+.toggle-btn {
+  background: #e3f2fd;
+  color: #1565c0;
+  border: none;
+  padding: 10px 22px;
+  margin: 0 6px;
+  border-radius: 10px;
+  font-weight: 600;
+  font-family: 'Tajawal', sans-serif;
+  cursor: pointer;
+  transition: 0.3s;
+}
+.toggle-btn:hover {
+  background: #bbdefb;
+}
+.toggle-btn.active {
+  background: linear-gradient(to right, #2196f3, #1976d2);
+  color: white;
+  box-shadow: 0 4px 12px rgba(33,150,243,0.3);
+}
+
+/* 🔔 شارة عدد رسائل جديدة */
+.chat-badge {
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  width: 20px;
+  height: 20px;
+  background: #f44336;
+  color: white;
+  border-radius: 50%;
+  font-size: 12px;
+  font-weight: bold;
+  display: none;
+  justify-content: center;
+  align-items: center;
+  box-shadow: 0 0 8px rgba(244,67,54,0.6);
+}
+
+/* 🔔 Toast بسيط */
+.toast {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  background: #323232;
+  color: #fff;
+  padding: 10px 18px;
+  border-radius: 8px;
+  font-size: 14px;
+  z-index: 5000;
+  opacity: 0.95;
+}
+.toast.success { background:#388e3c; }
+.toast.error { background:#d32f2f; }
+.toast.info { background:#1976d2; }
+
+.no-requests {
+  text-align:center;
+  color:#90a4ae;
+  padding:20px 0;
+}
+  </style>
+</head>
+<body>
+
+  <nav class="navbar">
+    <div class="logo-box">
+      <img src="{{ url_for('static', filename='7s.jpg') }}" alt="شعار SEVENS" />
+      <h1>نظام إدارة الطلبات</h1>
+    </div>
+    <div class="user-info">
+      <span id="userWelcome">جارٍ التحميل...</span>
+      <button class="logout-btn" onclick="logout()"><i class="fas fa-sign-out-alt"></i> خروج</button>
+    </div>
+  </nav>
+
+  <div class="container">
+    <div class="page-header">
+      <!-- فلتر الحالة -->
+      <select id="statusFilter" class="form-control" style="width:200px" onchange="filterRequestsByStatus()">
+        <option value="">جميع الحالات</option>
+        <option value="جديد">جديد</option>
+        <option value="قيد المراجعة">قيد المراجعة</option>
+        <option value="جاري التنفيذ">جاري التنفيذ</option>
+        <option value="معلق">معلق</option>
+        <option value="مغلق">مغلق</option>
+        <option value="مرفوض">مرفوض</option>
+      </select>
+
+      <!-- 🔍 فلتر الإدارات -->
+      <div style="position:relative;">
+        <input id="deptFilterInput"
+               type="text"
+               class="form-control"
+               placeholder="🔎 بحث عن إدارة"
+               onclick="toggleDeptDropdown()"
+               onkeyup="filterDeptList()"
+               style="width:220px; cursor:pointer;">
+        <div id="deptDropdown"
+             style="
+               display:none;
+               position:absolute;
+               background:white;
+               border:1px solid #ddd;
+               border-radius:10px;
+               max-height:260px;
+               overflow-y:auto;
+               width:220px;
+               z-index:999;
+               box-shadow:0 4px 12px rgba(0,0,0,0.1);
+               padding:8px;
+             ">
+        </div>
+      </div>
+
+      <h2 class="page-title" id="pageTitle">لوحة الموظف</h2>
+      <button class="new-request-btn" onclick="openNewRequestModal()"><i class="fas fa-plus"></i> رفع طلب جديد</button>
+    </div>
+
+    <div class="requests-grid">
+      <div style="text-align:center; margin:20px 0;">
+        <button id="btnIncoming" class="toggle-btn active"><i class="fas fa-inbox"></i> الطلبات الواردة</button>
+        <button id="btnOutgoing" class="toggle-btn"><i class="fas fa-paper-plane"></i> الطلبات المرسلة</button>
+      </div>
+
+      <h3 class="page-title">الطلبات الواردة إلى قسمك</h3>
+      <div id="incoming-requests" class="requests-section"></div>
+
+      <h3 class="page-title" style="margin-top:30px;">الطلبات التي أرسلتها</h3>
+      <div id="outgoing-requests" class="requests-section"></div>
+    </div>
+  </div>
+
+  <!-- 🔹 نموذج رفع طلب -->
+  <div class="request-modal" id="newRequestModal">
+    <div class="request-modal-content">
+      <h3 class="modal-title">رفع طلب جديد</h3>
+      <form id="newRequestForm">
+        <div class="form-group">
+          <label>عنوان الطلب</label>
+          <input type="text" id="requestTitle" class="form-control" required>
+        </div>
+
+        <div class="form-group">
+          <label>وصف الطلب</label>
+          <textarea id="requestDesc" class="form-control" rows="4" required></textarea>
+        </div>
+
+        <div class="form-group">
+          <label>الإدارة المستلمة</label>
+          <select id="targetDept" class="form-control" required>
+            <option value="">اختر إدارة</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>إرفاق ملف (اختياري)</label>
+          <input type="file" id="requestFile" class="form-control" accept=".pdf,.jpg,.png,.docx,.xlsx"/>
+        </div>
+
+        <button type="submit" class="submit-btn">
+          <i class="fas fa-paper-plane"></i> إرسال الطلب
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- زر الشات العائم -->
+  <div class="chatbot-float-btn" onclick="toggleChat()"><i class="fas fa-robot"></i></div>
+
+  <!-- نافذة الشات -->
+  <div id="chatbotWidget" class="chatbot-widget hidden" aria-live="polite">
+    <div class="cb-header">
+      <div class="cb-title"><i class="fas fa-robot"></i> مساعد SEVENS</div>
+      <button class="cb-close" onclick="toggleChat(false)" title="إغلاق"><i class="fas fa-times"></i></button>
+    </div>
+
+    <div id="cbBody" class="cb-body"></div>
+
+    <div class="cb-input">
+      <textarea id="cbInput" placeholder="اكتب رسالتك... (Enter للإرسال، Shift+Enter لسطر جديد)"></textarea>
+      <button id="cbSend" class="cb-send" onclick="sendChat()">إرسال</button>
+    </div>
+  </div>
+
+  <!-- 🗨️ نافذة تفاصيل الطلب والدردشة -->
+  <div id="ticketDetailsModal" class="file-viewer-modal" onclick="closeTicketDetails(event)">
+    <div class="file-viewer-content" style="max-width:900px;">
+      <span class="close-btn" onclick="closeTicketDetails(event)">&times;</span>
+      <div id="ticketDetailsBody" class="file-viewer-body">
+        <h3 id="ticketTitle">تفاصيل الطلب</h3>
+        <div id="ticketInfo"></div>
+
+        <!-- 💬 قسم الدردشة والملاحظات -->
+        <div id="chatSection" style="margin-top:25px;">
+          <h4 style="color:#1565c0;margin-bottom:12px;">
+            <i class="fas fa-comments"></i> الدردشة والملاحظات
+          </h4>
+
+          <div id="chatMessages" style="
+              max-height:400px;
+              overflow-y:auto;
+              background:linear-gradient(180deg,#f8fbff,#e3f2fd);
+              border-radius:14px;
+              padding:14px;
+              border:1px solid #bbdefb;
+              box-shadow:inset 0 0 10px rgba(0,0,0,0.05);
+            ">
+            <div class="loading" style="text-align:center;color:#78909c;">
+              جارٍ تحميل الرسائل...
+            </div>
+          </div>
+
+          <div id="chatInputArea" style="margin-top:14px;display:flex;flex-direction:column;gap:10px;">
+            <div style="display:flex;gap:8px;align-items:center;">
+              <textarea id="chatInput"
+                        placeholder="✍️ اكتب ملاحظتك أو رسالتك..."
+                        style="flex:1;border-radius:12px;border:2px solid #e3f2fd;padding:10px;font-size:15px;height:70px;"></textarea>
+              <input type="file" id="chatAttachment" accept=".pdf,.jpg,.png,.docx,.xlsx" style="display:none;">
+              <button onclick="document.getElementById('chatAttachment').click()" class="view-file-btn" style="height:45px;">
+                <i class="fas fa-paperclip"></i>
+              </button>
+              <button onclick="sendChatMessage()" class="save-btn" style="height:45px;">إرسال</button>
+            </div>
+            <small id="selectedFileLabel" style="color:#1565c0;font-weight:600;"></small>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 🗂️ نافذة عرض المرفقات -->
+  <div id="fileViewerModal" class="file-viewer-modal" onclick="closeFileViewer(event)">
+    <div class="file-viewer-content">
+      <span class="close-btn" onclick="closeFileViewer(event)">&times;</span>
+      <div id="fileViewerBody" class="file-viewer-body"></div>
+    </div>
+  </div>
+
+ <!-- 🔹 السكربت -->
+<script>
+/* ------------------ متغيرات عامة ------------------ */
+let departmentsList = [];
+let currentUser = null;
+let timers = {};
+let savedTimes = {};
+let chatHistory = [];
+
+/* ========== دالة توحيد النص العربي ========== */
+function normalizeArabicJS(t) {
+  t = (t || "").toString().trim();
+  t = t.replace(/[إأآا]/g, "ا");
+  t = t.replace(/\s+/g, "");
+  t = t.replace(/ة/g, "ه");
+  t = t.replace(/‏|‎/g, "");
+  t = t.replace(/^اداره?/g, "اداره");
+  return t;
+}
+
+function normalizeDept(d) {
+  if (!d) return "";
+  return d
+    .toString()
+    .trim()
+    .replace(/[\u202A-\u202E\u200F\u200E\u2066-\u2069]/g, "") // إزالة كل المحارف الخفية
+    .replace(/[إأآا]/g, "ا")
+    .replace(/ة/g, "ه")
+    .replace(/\s+/g, "")
+    .replace(/[^0-9a-zA-Zء-ي]/g, "")
+    .replace(/^اداره?/, "اداره");
+}
+
+/* ========== تحميل المستخدم من التخزين ========== */
+function loadCurrentUserFromStorage() {
+  let userData = localStorage.getItem("currentUser");
+
+  if (!userData) {
+    const fallback = localStorage.getItem("sevens_user");
+    if (fallback) {
+      localStorage.setItem("currentUser", fallback);
+      userData = fallback;
+    }
+  }
+
+  if (!userData) {
+    window.location.href = "Login.html";
+    return null;
+  }
+
+  currentUser = JSON.parse(userData);
+
+  // توحيد role
+  let role = currentUser.role ? currentUser.role.toLowerCase() : "";
+  const norm = (str) =>
+    str.replace(/[إأآا]/g, "ا").replace(/ة/g, "ه").replace(/\s+/g, "");
+
+  if (!["admin", "hr", "general_manager", "manager", "employee"].includes(role)) {
+    const r = norm(currentUser.role || "");
+    if (r.includes("عام")) role = "general_manager";
+    else if (r.includes("قسم") || r.includes("مديرقسم")) role = "manager";
+    else if (r.includes("موظف")) role = "employee";
+    else role = "employee";
+  }
+  currentUser.role = role;
+  return currentUser;
+}
+
+/* ========== فحص الجلسة مع الباكند ========== */
+async function sessionCheck() {
+  try {
+    const res = await fetch("/api/auth/session_check");
+    const data = await res.json();
+
+    if (!data.valid) {
+      localStorage.removeItem("sevens_user");
+      localStorage.removeItem("currentUser");
+      window.location.href = "/Login.html";
+      return;
+    }
+
+    localStorage.setItem("sevens_user", JSON.stringify(data.user));
+    localStorage.setItem("currentUser", JSON.stringify(data.user));
+  } catch (e) {
+    console.error("Session error:", e);
+    localStorage.removeItem("sevens_user");
+    localStorage.removeItem("currentUser");
+    window.location.href = "/Login.html";
+  }
+}
+
+/* ========== الشات العائم (مساعد SEVENS) ========== */
+function appendMsg(sender, text) {
+  const cbBody = document.getElementById("cbBody");
+  if (!cbBody) return;
+  const msgDiv = document.createElement("div");
+  msgDiv.classList.add("cb-msg", sender === "user" ? "user" : "bot");
+  msgDiv.textContent = text;
+  cbBody.appendChild(msgDiv);
+  cbBody.scrollTop = cbBody.scrollHeight;
+}
+
+function toggleChat(forceState) {
+  const widget = document.getElementById("chatbotWidget");
+  const isShown = widget.classList.contains("show");
+  const shouldShow =
+    typeof forceState === "boolean" ? forceState : !isShown;
+  if (shouldShow) widget.classList.add("show");
+  else widget.classList.remove("show");
+}
+
+function sendChat() {
+  const input = document.getElementById("cbInput");
+  const text = (input.value || "").trim();
+  if (!text) return;
+  appendMsg("user", text);
+  input.value = "";
+
+  // رد بسيط (محلي)
+  setTimeout(() => {
+    appendMsg(
+      "bot",
+      "تم استلام سؤالك 🎧، إذا كان بخصوص رقم طلب معيّن اذكر رقم الطلب أو القسم وسأساعدك في تتبعه."
+    );
+  }, 400);
+}
+
+/* ========== الإدارات (فلتر وهدف الطلب) ========== */
+async function loadDepartments() {
+  try {
+    const res = await fetch("/api/get_departments");
+    const data = await res.json();
+    departmentsList = data.departments || [];
+    buildDeptDropdown();
+    populateTargetDept();
+  } catch (err) {
+    console.error("❌ فشل تحميل الإدارات:", err);
+  }
+}
+
+function populateTargetDept() {
+  const select = document.getElementById("targetDept");
+  if (!select) return;
+  select.innerHTML = `<option value="">اختر إدارة</option>`;
+  departmentsList.forEach((d) => {
+    select.innerHTML += `<option value="${d}">${d}</option>`;
+  });
+}
+
+function buildDeptDropdown() {
+  const box = document.getElementById("deptDropdown");
+  if (!box) return;
+  box.innerHTML = departmentsList
+    .map(
+      (d) => `
+    <div onclick="selectDept('${d}')"
+         style="padding:8px; cursor:pointer; border-radius:8px;">
+      ${d}
+    </div>
+  `
+    )
+    .join("");
+}
+
+function toggleDeptDropdown() {
+  const dd = document.getElementById("deptDropdown");
+  dd.style.display = dd.style.display === "block" ? "none" : "block";
+}
+
+function filterDeptList() {
+  const input = document.getElementById("deptFilterInput");
+  if (!input) return;
+  const term = normalizeArabicJS(input.value);
+  const items = document.querySelectorAll("#deptDropdown div");
+  items.forEach((i) => {
+    const name = normalizeArabicJS(i.textContent);
+    i.style.display = name.includes(term) ? "block" : "none";
+  });
+}
+
+function selectDept(name) {
+  document.getElementById("deptFilterInput").value = name;
+  document.getElementById("deptDropdown").style.display = "none";
+  filterRequestsByDept(name);
+}
+
+/* ========== أقسام الموظف (رئيسي + إضافي) ========== */
+function getUserAllDepartments() {
+  const mainDept = normalizeDept(currentUser.department);
+  let extra = currentUser.extra_departments;
+
+  if (Array.isArray(extra)) {
+    extra = extra
+      .filter((d) => d && d !== "nan" && d !== "NaN")
+      .map((d) => normalizeDept(d));
+  } else if (typeof extra === "string") {
+    extra = extra
+      .split(",")
+      .map((d) => d.trim())
+      .filter((d) => d && d !== "nan" && d !== "NaN")
+      .map((d) => normalizeDept(d));
+  } else {
+    extra = [];
+  }
+
+  return [mainDept, ...extra];
+}
+
+/* ========== تحميل الطلبات للموظف ========== */
+async function loadRequestsForUser() {
+  if (!currentUser) return;
+
+  const allDepts = getUserAllDepartments();
+
+  document.getElementById("incoming-requests").innerHTML =
+    '<div class="loading-message">جارٍ تحميل الطلبات...</div>';
+
+  try {
+    const res = await fetch("/api/get_requests", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        role: currentUser.role,
+        departments: allDepts,
+        name: currentUser.name,
+      }),
+    });
+
+    const data = await res.json();
+
+    console.log("📌 RAW REQUESTS:", data);
+
+    const incoming = data.filter((r) => {
+      const recv = normalizeDept(r["القسم المستلم"] || "");
+      const sender = normalizeArabicJS(r["اسم المرسل"] || "");
+      const userName = normalizeArabicJS(currentUser.name || "");
+
+      const isToMyDepts = allDepts.some((d) => recv === normalizeDept(d));
+      const isMine = sender === userName;
+
+      // الوارد: إلى إداراتي لكن ليس أنا المرسل
+      return isToMyDepts && !isMine;
+    });
+
+    const outgoing = data.filter((r) => {
+      const sender = normalizeArabicJS(r["اسم المرسل"] || "");
+      const user = normalizeArabicJS(currentUser.name || "");
+      return sender === user;
+    });
+
+    console.log("📥 incoming after fix:", incoming);
+    console.log("📤 outgoing after fix:", outgoing);
+
+    renderRequests("incoming-requests", incoming);
+    renderRequests("outgoing-requests", outgoing);
+  } catch (err) {
+    console.error("❌ فشل التحديث:", err);
+  }
+}
+
+/* 🔄 تحديث الطلبات كل 30 ثانية (بدون لمس النماذج المفتوحة) */
+setInterval(async () => {
+  if (!currentUser) return;
+
+  const modal = document.getElementById("newRequestModal");
+  const isModalOpen = modal && modal.style.display === "flex";
+  const fileViewer = document.getElementById("fileViewerModal");
+  const isFileOpen = fileViewer && fileViewer.style.display === "flex";
+
+  if (isModalOpen || isFileOpen) return;
+
+  try {
+    const res = await fetch("/api/get_requests", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        role: currentUser.role,
+        departments: getUserAllDepartments(),
+        name: currentUser.name,
+      }),
+    });
+
+    const data = await res.json();
+
+    const allDepts = getUserAllDepartments();
+    const userName = normalizeArabicJS(currentUser.name || "");
+
+    const incoming = data.filter((r) => {
+      const recv = normalizeDept(r["القسم المستلم"] || "");
+      const sender = normalizeArabicJS(r["اسم المرسل"] || "");
+      const isToMyDepts = allDepts.some((d) => recv === normalizeDept(d));
+      const isMine = sender === userName;
+      return isToMyDepts && !isMine;
+    });
+
+    const outgoing = data.filter((r) => {
+      const sender = normalizeArabicJS(r["اسم المرسل"] || "");
+      return sender === userName;
+    });
+
+    renderRequests("incoming-requests", incoming);
+    renderRequests("outgoing-requests", outgoing);
+  } catch (err) {
+    console.error("❌ فشل التحديث:", err);
+  }
+}, 30000);
+
+/* ============================================================
+   🟦 عرض الطلبات في كروت — النسخة النهائية الكاملة
+   ============================================================ */
+function renderRequests(containerId, list) {
+  const c = document.getElementById(containerId);
+  if (!c) return;
+
+
+
+  list = (list || []).map((r) => {
+    r._status = (r["الحالة"] || r["الحاله"] || "").trim();
+    return r;
+  });
+
+  // لا توجد طلبات
+  if (!list.length) {
+    c.innerHTML = '<div class="no-requests">لا توجد طلبات.</div>';
+    return;
+  }
+
+  c.innerHTML = list
+    .map((req) => {
+      const status = (req["الحالة"] || "").trim();
+      const fileName = req["الملف"] || "";
+      const reqId = req["رقم الطلب"] || "";
+      const recvDept = normalizeArabicJS(req["القسم المستلم"] || "");
+      const userDept = normalizeArabicJS(currentUser.department || "");
+
+      return `
+      <div class="request-card"
+           data-id="${reqId}"
+           onclick="openTicketDetails('${reqId}')">
+
+        <div class="status-header ${statusToClass(status)}"></div>
+
+        <div class="card-content">
+
+          <!-- رقم الطلب + التاريخ -->
+          <div class="card-top" style="display:flex;justify-content:space-between;margin-bottom:6px;">
+            <div class="request-id">#${reqId}</div>
+            <div class="request-date">${req["التاريخ"] || ""}</div>
+          </div>
+
+          <!-- العنوان والوصف -->
+          <h3 class="request-title">${req["العنوان"] || ""}</h3>
+          <p class="request-desc">${req["الوصف"] || ""}</p>
+
+          <!-- بيانات المرسل والمستلم -->
+          <div class="request-meta" style="font-size:13px;color:#546e7a;margin:8px 0;">
+            <div class="meta-item">
+              <i class="fas fa-user"></i>
+              المرسل: ${req["اسم المرسل"] || "-"}
+              (${req["القسم المرسل"] || "-"})
+            </div>
+
+            <div class="meta-item">
+              <i class="fas fa-user-check"></i>
+              المستلم: ${req["اسم المستلم"] || "-"}
+              (${req["القسم المستلم"] || "-"})
+            </div>
+          </div>
+
+          <!-- الحالة -->
+          <div class="status-info">
+            <div>
+              <span class="status-label">الحالة:</span>
+              <span class="status-badge ${statusToClass(status)}">${status || "-"}</span>
+            </div>
+            <div>
+              <span class="status-label">آخر تحديث:</span>
+              ${req["آخر تحديث بواسطة"] || "-"}
+            </div>
+          </div>
+
+          <!-- المرفق -->
+          ${
+            fileName
+              ? `<div class="meta-item" style="margin-top:8px;">
+                   <i class="fas fa-paperclip"></i>
+                   <button class="view-file-btn"
+                     onclick="event.stopPropagation(); openFileViewer('/uploads/${fileName}')">
+                     عرض المرفق
+                   </button>
+                 </div>`
+              : `<div class="meta-item" style="margin-top:8px;">
+                   <i class="fas fa-paperclip"></i> لا يوجد مرفق
+                 </div>`
+          }
+
+          <!-- تغيير الحالة -->
+          <div class="update-section">
+            ${
+              recvDept === userDept
+                ? `
+                <select class="status-select"
+                        onclick="event.stopPropagation()"
+                        onchange="updateRequestStatus('${reqId}', this.value, event)">
+                  <option value="">تغيير الحالة</option>
+                  <option value="قيد المراجعة">قيد المراجعة</option>
+                  <option value="جاري التنفيذ">جاري التنفيذ</option>
+                  <option value="معلق">معلق</option>
+                  <option value="مغلق">مغلق</option>
+                  <option value="مرفوض">مرفوض</option>
+                </select>`
+                : `
+                <select class="status-select" disabled>
+                  <option value="">لا يمكن التعديل</option>
+                </select>`
+            }
+
+            <span id="timer-${reqId}" class="timer-text">
+              ${req["الوقت"] || "00:00:00"}
+            </span>
+          </div>
+
+        </div>
+      </div>
+    `;
+    })
+    .join("");
+
+  setTimeout(() => {
+    list.forEach((req) => {
+      const status = (req["الحالة"] || "").trim();
+      const timeStr = (req["الوقت"] || "00:00:00").trim();
+      const [h, m, s] = timeStr.split(":").map(Number);
+      const totalSec = (h || 0) * 3600 + (m || 0) * 60 + (s || 0);
+
+      if (status === "جاري التنفيذ") startTimer(req["رقم الطلب"], totalSec);
+      else if (status === "معلق") pauseTimer(req["رقم الطلب"]);
+    });
+  }, 300);
+}
+
+/* ========== ألوان الحالات ========== */
+function statusToClass(s) {
+  if (s.includes("جديد")) return "status-new";
+  if (s.includes("مغلق")) return "status-closed";
+  if (s.includes("جاري")) return "status-in-progress";
+  if (s.includes("مرفوض")) return "status-rejected";
+  return "status-new";
+}
+
+/* ========== فلترة الطلبات حسب الإدارة ========== */
+function filterRequestsByDept(dept) {
+  const nDept = normalizeArabicJS(dept);
+  const cards = document.querySelectorAll(".request-card");
+
+  cards.forEach((card) => {
+    const meta = card.querySelectorAll(".meta-item");
+    const senderDept = meta[0]?.textContent || "";
+    const recvDept = meta[1]?.textContent || "";
+
+    const match =
+      !nDept ||
+      normalizeArabicJS(senderDept).includes(nDept) ||
+      normalizeArabicJS(recvDept).includes(nDept);
+
+    card.style.display = match ? "block" : "none";
+  });
+}
+
+/* إعادة إظهار الكل عند مسح الفلتر */
+document.addEventListener("DOMContentLoaded", () => {
+  const deptInput = document.getElementById("deptFilterInput");
+  if (deptInput) {
+    deptInput.addEventListener("input", () => {
+      if (!deptInput.value.trim()) {
+        document
+          .querySelectorAll(".request-card")
+          .forEach((c) => (c.style.display = "block"));
+      }
+    });
+  }
+});
+
+/* ========== فلترة حسب الحالة ========== */
+function filterRequestsByStatus() {
+  const status = document.getElementById("statusFilter").value.trim();
+  const allCards = document.querySelectorAll(".request-card");
+
+  allCards.forEach((card) => {
+    const badge = card.querySelector(".status-badge");
+    const cardStatus = badge ? badge.textContent.trim() : "";
+
+    if (!status) {
+      card.style.display = "block";
+      return;
+    }
+
+    if (normalizeArabicJS(cardStatus) === normalizeArabicJS(status)) {
+      card.style.display = "block";
+    } else {
+      card.style.display = "none";
+    }
+  });
+}
+
+/* ========== دالة تحديث الحالة ========== */
+async function updateRequestStatus(reqId, newStatus, event) {
+  if (event) event.stopPropagation();
+  if (!newStatus) return;
+
+  const updater = currentUser.name;
+  const payload = { requestId: reqId, status: newStatus, updater };
+
+  if (newStatus === "جاري التنفيذ") startTimer(reqId);
+  if (newStatus === "معلق") pauseTimer(reqId);
+  if (newStatus === "مغلق") {
+    const duration = stopTimer(reqId);
+    payload.duration = duration;
+  }
+
+  try {
+    const res = await fetch("/api/update_request_status", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+
+    const data = await res.json();
+    if (data.success) {
+      showToast("تم تحديث الحالة بنجاح ✅", "success");
+      await loadRequestsForUser();
+    } else {
+      showToast("حدث خطأ أثناء التحديث ❌", "error");
+    }
+  } catch (e) {
+    console.error(e);
+    showToast("فشل الاتصال بالخادم", "error");
+  }
+}
+
+/* ========== نظام المؤقت ========== */
+function startTimer(reqId, baseSeconds = null) {
+  const el = document.getElementById(`timer-${reqId}`);
+  if (!el) return;
+  let seconds = savedTimes[reqId] ?? baseSeconds ?? 0;
+
+  clearInterval(timers[reqId]);
+  timers[reqId] = setInterval(() => {
+    seconds++;
+    savedTimes[reqId] = seconds;
+    const h = String(Math.floor(seconds / 3600)).padStart(2, "0");
+    const m = String(Math.floor((seconds % 3600) / 60)).padStart(2, "0");
+    const s = String(seconds % 60).padStart(2, "0");
+    el.textContent = `${h}:${m}:${s}`;
+
+    if (seconds < 300) el.style.background = "#e8f5e9";
+    else if (seconds < 1800) el.style.background = "#fff8e1";
+    else el.style.background = "#ffebee";
+  }, 1000);
+}
+
+function pauseTimer(reqId) {
+  if (timers[reqId]) {
+    clearInterval(timers[reqId]);
+    timers[reqId] = null;
+  }
+}
+
+function stopTimer(reqId) {
+  if (timers[reqId]) {
+    clearInterval(timers[reqId]);
+    delete timers[reqId];
+  }
+  const el = document.getElementById(`timer-${reqId}`);
+  const time = el ? el.textContent : "00:00:00";
+  delete savedTimes[reqId];
+  return time;
+}
+
+/* ========== Toast بسيط للإشعارات ========== */
+function showToast(msg, type = "info") {
+  const toast = document.createElement("div");
+  toast.className = `toast ${type}`;
+  toast.textContent = msg;
+  document.body.appendChild(toast);
+  setTimeout(() => toast.remove(), 3500);
+}
+
+/* ========== إرسال طلب جديد ========== */
+document.addEventListener("DOMContentLoaded", () => {
+  const form = document.getElementById("newRequestForm");
+  if (!form) return;
+
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+
+    const title = document.getElementById("requestTitle").value.trim();
+    const desc = document.getElementById("requestDesc").value.trim();
+    const targetDept = document.getElementById("targetDept").value.trim();
+    const fileInput = document.getElementById("requestFile");
+
+    if (!title || !desc || !targetDept) {
+      alert("الرجاء تعبئة جميع الحقول قبل الإرسال");
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append("title", title);
+    formData.append("description", desc);
+    formData.append("targetDept", targetDept);
+    formData.append("senderDept", currentUser.department);
+    formData.append("senderName", currentUser.name);
+    if (fileInput.files.length > 0) {
+      formData.append("file", fileInput.files[0]);
+    }
+
+    try {
+      const res = await fetch("/api/create_request", {
+        method: "POST",
+        body: formData,
+      });
+      const data = await res.json();
+
+      if (data.success || data.message === "created") {
+        alert("✅ تم إرسال الطلب بنجاح");
+        closeNewRequestModal();
+        form.reset();
+        await loadRequestsForUser();
+      } else {
+        alert("❌ حدث خطأ أثناء الإرسال: " + (data.message || "غير معروف"));
+      }
+    } catch (e) {
+      console.error("❌ خطأ أثناء الإرسال:", e);
+      alert("❌ لم يتم الاتصال بالخادم، تأكد من أن السيرفر يعمل.");
+    }
+  });
+});
+
+/* ========== عرض المرفقات ========== */
+function openFileViewer(url) {
+  const viewerBody = document.getElementById("fileViewerBody");
+  viewerBody.innerHTML = "";
+  const ext = url.split(".").pop().toLowerCase();
+
+  if (["jpg", "jpeg", "png", "gif", "webp"].includes(ext)) {
+    viewerBody.innerHTML = `<img src="${url}" style="max-width:100%;border-radius:10px;">`;
+  } else if (ext === "pdf") {
+    viewerBody.innerHTML = `<iframe src="${url}" width="100%" height="500px" style="border:none;border-radius:10px;"></iframe>`;
+  } else if (["xlsx", "xls", "docx", "doc"].includes(ext)) {
+    viewerBody.innerHTML = `<iframe src="https://view.officeapps.live.com/op/embed.aspx?src=${
+      window.location.origin + url
+    }" width="100%" height="500px" frameborder="0"></iframe>`;
+  } else {
+    viewerBody.innerHTML = `<p>لا يمكن عرض هذا النوع من الملفات مباشرة. يمكنك تحميله <a href="${url}" target="_blank">من هنا</a>.</p>`;
+  }
+
+  document.getElementById("fileViewerModal").style.display = "flex";
+}
+
+/* ========== تفاصيل الطلب والدردشة ========== */
+async function openTicketDetails(reqId) {
+  window.lastChatCount = window.lastChatCount || {};
+  const card = document.querySelector(`.request-card[data-id='${reqId}']`);
+  if (card) card.classList.remove("card-glow");
+  window.lastChatCount[reqId] = 0;
+  updateChatBadge(reqId, 0);
+
+  try {
+    const res = await fetch("/api/get_requests", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        role: currentUser.role,
+        departments: getUserAllDepartments(),
+        name: currentUser.name,
+      }),
+    });
+    const data = await res.json();
+    const ticket = data.find((r) => r["رقم الطلب"] === reqId);
+    if (!ticket) return alert("لم يتم العثور على تفاصيل الطلب.");
+
+    document.getElementById(
+      "ticketTitle"
+    ).textContent = `تفاصيل الطلب #${reqId}`;
+    document.getElementById("ticketInfo").innerHTML = `
+      <p><strong>العنوان:</strong> ${ticket["العنوان"] || ""}</p>
+      <p><strong>الوصف:</strong> ${ticket["الوصف"] || ""}</p>
+      <p><strong>القسم المرسل:</strong> ${ticket["القسم المرسل"] || ""}</p>
+      <p><strong>القسم المستلم:</strong> ${ticket["القسم المستلم"] || ""}</p>
+      <p><strong>الحالة:</strong> ${ticket["الحالة"] || ""}</p>
+    `;
+
+    await loadChatMessages(reqId);
+
+    const modal = document.getElementById("ticketDetailsModal");
+    modal.style.display = "flex";
+    modal.dataset.reqid = reqId;
+  } catch (e) {
+    console.error(e);
+    alert("حدث خطأ أثناء تحميل التفاصيل.");
+  }
+}
+
+function closeTicketDetails(e) {
+  const modal = document.getElementById("ticketDetailsModal");
+  if (e.target === modal || e.target.classList.contains("close-btn")) {
+    modal.style.display = "none";
+    document.getElementById("chatMessages").innerHTML = "";
+  }
+}
+
+/* ========== دردشة التذكرة ========== */
+async function loadChatMessages(reqId) {
+  try {
+    const res = await fetch(`/api/chat_get/${reqId}`);
+    const msgs = await res.json();
+    const box = document.getElementById("chatMessages");
+
+    if (!Array.isArray(msgs) || msgs.length === 0) {
+      box.innerHTML =
+        '<div style="text-align:center;color:#78909c;">لا توجد رسائل بعد 💬</div>';
+      return;
+    }
+
+    box.innerHTML = msgs
+      .map(
+        (m) => `
+      <div class="chat-msg ${
+        normalizeArabicJS(m["القسم"]) ===
+        normalizeArabicJS(currentUser.department)
+          ? "me"
+          : "other"
+      }">
+        <div class="chat-meta">
+          <strong>${m["المرسل"]}</strong>
+          <span class="chat-time">${m["الوقت"]}</span>
+        </div>
+        <div class="chat-text">${m["الرسالة"] || ""}</div>
+        ${
+          m["الملف"]
+            ? `
+          <div class="chat-attachment">
+            <a href="/chat_uploads/${m["الملف"]}" target="_blank">
+              <i class="fas fa-paperclip"></i> ${m["الملف"]}
+            </a>
+          </div>`
+            : ""
+        }
+      </div>
+    `
+      )
+      .join("");
+
+    if (!window.lastChatCount) window.lastChatCount = {};
+    if (!window.lastChatCount[reqId]) window.lastChatCount[reqId] = 0;
+
+    if (msgs.length > window.lastChatCount[reqId]) {
+      const newCount = msgs.length - window.lastChatCount[reqId];
+      const card = document.querySelector(
+        `.request-card[data-id='${reqId}']`
+      );
+      if (card) {
+        card.classList.add("card-glow");
+        setTimeout(() => card.classList.remove("card-glow"), 2500);
+      }
+      updateChatBadge(reqId, newCount);
+    }
+    window.lastChatCount[reqId] = msgs.length;
+
+    box.scrollTop = box.scrollHeight;
+  } catch (e) {
+    console.error("loadChatMessages error:", e);
+  }
+}
+
+async function sendChatMessage() {
+  const modal = document.getElementById("ticketDetailsModal");
+  const reqId = modal.dataset.reqid;
+  const msg = document.getElementById("chatInput").value.trim();
+  const fileInput = document.getElementById("chatAttachment");
+  if (!msg && fileInput.files.length === 0) return;
+
+  const formData = new FormData();
+  formData.append("request_id", reqId);
+  formData.append("sender", currentUser.name);
+  formData.append("department", currentUser.department);
+  formData.append("message", msg);
+
+  if (fileInput.files.length > 0) {
+    formData.append("file", fileInput.files[0]);
+  }
+
+  try {
+    const res = await fetch("/api/chat_send_file", {
+      method: "POST",
+      body: formData,
+    });
+
+    const data = await res.json();
+    if (data.success) {
+      document.getElementById("chatInput").value = "";
+      document.getElementById("chatAttachment").value = "";
+      document.getElementById("selectedFileLabel").textContent = "";
+      await loadChatMessages(reqId);
+    } else {
+      alert("❌ فشل إرسال الرسالة");
+    }
+  } catch (e) {
+    console.error(e);
+  }
+}
+
+/* تحديث دردشة التذكرة كل 10 ثوانٍ إذا النافذة مفتوحة */
+setInterval(() => {
+  const modal = document.getElementById("ticketDetailsModal");
+  if (modal && modal.style.display === "flex") {
+    const reqId = modal.dataset.reqid;
+    loadChatMessages(reqId);
+  }
+}, 10000);
+
+/* عرض اسم الملف */
+document.addEventListener("DOMContentLoaded", () => {
+  const attach = document.getElementById("chatAttachment");
+  if (attach) {
+    attach.addEventListener("change", (e) => {
+      const file = e.target.files[0];
+      const label = document.getElementById("selectedFileLabel");
+      label.textContent = file ? `📎 تم اختيار الملف: ${file.name}` : "";
+    });
+  }
+});
+
+/* ========== فتح/غلق نموذج الطلب الجديد ========== */
+function openNewRequestModal() {
+  const modal = document.getElementById("newRequestModal");
+  modal.style.display = "flex";
+  modal.style.opacity = "1";
+  modal.style.pointerEvents = "auto";
+  setTimeout(() => {
+    document.addEventListener("click", handleOutsideClick);
+  }, 200);
+}
+
+function closeNewRequestModal() {
+  const modal = document.getElementById("newRequestModal");
+  modal.style.display = "none";
+  modal.style.opacity = "0";
+  modal.style.pointerEvents = "none";
+  document.removeEventListener("click", handleOutsideClick);
+}
+
+function handleOutsideClick(e) {
+  const modal = document.getElementById("newRequestModal");
+  const content = modal.querySelector(".request-modal-content");
+  const openButton = document.querySelector(".new-request-btn");
+
+  if (
+    modal.style.display === "flex" &&
+    !content.contains(e.target) &&
+    e.target !== openButton &&
+    !openButton.contains(e.target)
+  ) {
+    closeNewRequestModal();
+  }
+}
+
+/* ========== زر الخروج ========== */
+function logout() {
+  if (confirm("هل أنت متأكد أنك تريد تسجيل الخروج؟")) {
+    localStorage.removeItem("currentUser");
+    localStorage.removeItem("sevens_user");
+    alert("تم تسجيل الخروج بنجاح ✅");
+    window.location.href = "Login.html";
+  }
+}
+
+/* ✅ إغلاق نافذة عرض المرفقات */
+function closeFileViewer(event) {
+  const modal = document.getElementById("fileViewerModal");
+  const content = modal.querySelector(".file-viewer-content");
+
+  if (
+    event.target === modal ||
+    event.target.classList.contains("close-btn") ||
+    !content.contains(event.target)
+  ) {
+    modal.style.display = "none";
+    document.getElementById("fileViewerBody").innerHTML = "";
+  }
+}
+
+/* 🔄 تبديل عرض الوارد/المرسل */
+function initToggleButtons() {
+  const btnIncoming = document.getElementById("btnIncoming");
+  const btnOutgoing = document.getElementById("btnOutgoing");
+  const incoming = document.getElementById("incoming-requests");
+  const outgoing = document.getElementById("outgoing-requests");
+
+  const incomingTitle = document.querySelector(
+    "h3.page-title:nth-of-type(1)"
+  );
+  const outgoingTitle = document.querySelector(
+    "h3.page-title:nth-of-type(2)"
+  );
+
+  if (!btnIncoming || !btnOutgoing || !incoming || !outgoing) {
+    console.error("❌ عناصر التبديل غير جاهزة بعد");
+    return;
+  }
+
+  function showIncoming() {
+    incoming.style.display = "grid";
+    outgoing.style.display = "none";
+    incomingTitle.style.display = "block";
+    outgoingTitle.style.display = "none";
+    btnIncoming.classList.add("active");
+    btnOutgoing.classList.remove("active");
+  }
+
+  function showOutgoing() {
+    incoming.style.display = "none";
+    outgoing.style.display = "grid";
+    incomingTitle.style.display = "none";
+    outgoingTitle.style.display = "block";
+    btnIncoming.classList.remove("active");
+    btnOutgoing.classList.add("active");
+  }
+
+  btnIncoming.addEventListener("click", showIncoming);
+  btnOutgoing.addEventListener("click", showOutgoing);
+
+  showIncoming();
+}
+
+/* ✅ شارة جديدة على البطاقة */
+function updateChatBadge(reqId, count) {
+  const card = document.querySelector(`.request-card[data-id='${reqId}']`);
+  if (!card) return;
+
+  let badge = card.querySelector(".chat-badge");
+  if (!badge) {
+    badge = document.createElement("div");
+    badge.className = "chat-badge";
+    card.appendChild(badge);
+  }
+
+  if (count > 0) {
+    badge.textContent = count > 9 ? "9+" : count;
+    badge.style.display = "flex";
+  } else {
+    badge.style.display = "none";
+  }
+}
+
+/* ========== تهيئة الصفحة عند التحميل ========== */
+window.addEventListener("load", async () => {
+  initToggleButtons();
+  const user = loadCurrentUserFromStorage();
+  if (!user) return;
+
+  document.getElementById(
+    "userWelcome"
+  ).textContent = `مرحباً، ${currentUser.name} (${currentUser.department})`;
+  document.getElementById(
+    "pageTitle"
+  ).textContent = `لوحة قسم ${currentUser.department}`;
+
+  appendMsg(
+    "bot",
+    "مرحباً! أنا مساعد SEVENS، اسألني أي شيء بخصوص الطلبات 🤖"
+  );
+
+  await loadDepartments();
+  await loadRequestsForUser();
+
+  // فحص الجلسة أول مرة ثم كل 20 ثانية
+  sessionCheck();
+  setInterval(sessionCheck, 20000);
+});
+</script>
+
+</body>
+</html>

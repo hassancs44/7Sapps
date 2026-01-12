@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>لوحة الصيانة | SEVENS</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.rtl.min.css">
+   <style>
+    :root {
+  --ink:#1e2a3a;
+  --muted:#6b7c93;
+  --card:#ffffff;
+  --line:#e8f0ff;
+  --s-500:#2f8aff;
+  --s-600:#1f68d6;
+  --s-700:#154fa8;
+  --bg1:#f8fbff;
+  --bg2:#eaf3ff;
+  --glass: rgba(255,255,255,.55);
+  --glass-b: rgba(255,255,255,.8);
+}
+
+*{box-sizing:border-box}
+html,body{height:100%}
+body{
+  margin:0;
+  font-family:'Tajawal',sans-serif;
+  color:var(--ink);
+  background:
+    radial-gradient(1200px 500px at 80% -50%, rgba(47,138,255,.18), transparent 60%),
+    linear-gradient(180deg, var(--bg1), var(--bg2), var(--bg1));
+}
+
+.container{padding:28px 18px; max-width:1100px; margin:auto}
+
+/* Header */
+.page-header{text-align:center; margin-bottom:18px}
+.page-logo{
+  width:96px; height:96px; object-fit:cover;
+  border-radius:14px; box-shadow:0 8px 24px rgba(31,104,214,.25); margin-bottom:10px;
+}
+.page-sub{color:var(--muted); font-size:14px}
+
+/* Card */
+.card{
+  background:var(--card);
+  border-radius:18px;
+  padding:18px;
+  box-shadow:0 15px 40px rgba(31,104,214,.10), inset 0 0 0 1px #eef3ff;
+  margin-bottom:18px;
+}
+.card-head{display:flex; align-items:center; justify-content:space-between; gap:8px}
+h1,h2{margin:0 0 10px}
+
+/* Form */
+.grid{display:grid; gap:10px}
+.form-grid{grid-template-columns: repeat(4, minmax(0,1fr));}
+.form-grid .full{grid-column: 1 / -1}
+label{display:block; font-size:13px; margin-bottom:6px; color:#26406a}
+input,select,button{
+  width:100%; padding:11px 12px; border:1px solid #e3edff; border-radius:12px; background:#fbfdff;
+  font-family:'Tajawal',sans-serif; font-size:14px; color:var(--ink);
+}
+input:focus,select:focus{outline:none; border-color:#5aa8ff; box-shadow:0 0 0 3px rgba(47,138,255,.18)}
+.actions{display:flex; align-items:center; gap:12px}
+
+/* Buttons */
+.btn{cursor:pointer; transition:.15s ease; user-select:none}
+.btn.primary{
+  background: linear-gradient(92deg, var(--s-600), var(--s-500));
+  color:#fff; border:none; font-weight:600;
+  box-shadow: 0 8px 18px rgba(31,104,214,.22);
+}
+.btn.primary:hover{filter:brightness(1.05)}
+.btn.outline{
+  background:#ffffff; color:#154fa8; border:1px solid #cfe1ff;
+}
+.btn.outline:hover{background:#f6faff}
+
+/* Toolbar */
+.toolbar{display:flex; flex-wrap:wrap; gap:10px; align-items:center; margin:8px 0 0}
+.glass{
+  backdrop-filter: blur(8px);
+  background: var(--glass);
+  border:1px solid var(--glass-b);
+}
+
+/* Table */
+.table-wrap{overflow:auto; border:1px solid #e9f0ff; border-radius:14px}
+.data-table{width:100%; border-collapse:collapse}
+.data-table th, .data-table td{
+  padding:12px; border-bottom:1px solid #eef3ff; text-align:right
+}
+.data-table th{
+  background:linear-gradient(0deg, #f5f9ff, #f9fbff);
+  font-weight:700; color:#173b7a; position:sticky; top:0; z-index:1;
+}
+.data-table tbody tr:hover{background:#fbfeff}
+.data-table tbody tr:nth-child(even){background:#fcfeff}
+.empty{text-align:center; padding:26px; color:var(--muted)}
+
+/* Modal */
+.modal{position:fixed; inset:0; background:rgba(0,0,0,0.5); display:flex; align-items:center; justify-content:center; z-index:1000}
+.modal-content{background:#fff; padding:25px; border-radius:15px; max-width:500px; width:90%; box-shadow:0 4px 20px rgba(0,0,0,0.2)}
+.hidden{display:none}
+.close{float:left; font-size:24px; cursor:pointer; color:#333}
+.history-item{background:#f8fbff; padding:8px 10px; margin:5px 0; border-radius:8px}
+
+/* Footer */
+.footer{text-align:center; color:#6c7da1; font-size:13px; padding:18px 12px 30px;}
+
+/* Responsive */
+@media (max-width: 1024px){.form-grid{grid-template-columns: repeat(2, minmax(0,1fr));}}
+@media (max-width: 640px){.form-grid{grid-template-columns: 1fr;}}
+
+
+.modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 999;
+}
+
+.modal-content {
+  background: #fff;
+  padding: 25px;
+  border-radius: 16px;
+  box-shadow: 0 8px 30px rgba(0,0,0,0.2);
+  max-width: 500px;
+  width: 90%;
+  text-align: right;
+}
+
+.modal .close {
+  float: left;
+  font-size: 22px;
+  cursor: pointer;
+  color: #333;
+}
+
+.hidden { display: none; }
+
+.history-item {
+  background: #f8fbff;
+  padding: 8px 10px;
+  margin: 5px 0;
+  border-radius: 8px;
+}
+</style>
+</head>
+<body>
+<nav class="navbar navbar-expand-lg bg-white shadow-sm mb-3">
+  <div class="container-fluid">
+    <a class="navbar-brand fw-bold text-primary">SEVENS — الصيانة</a>
+    <div class="d-flex gap-2">
+    </div>
+  </div>
+</nav>
+
+<div class="container my-3">
+  <!-- بحث + فلتر -->
+  <div class="row g-2 align-items-end">
+    <div class="col-md-6">
+      <label class="form-label">بحث (باللوحة/الهيكل/الشركة/الموديل/اللون/السنة)</label>
+      <input id="search" type="text" class="form-control" placeholder="مثال: 4784 أو LGWEE4A...">
+    </div>
+    <div class="col-md-3">
+      <label class="form-label">فلتر العرض</label>
+      <select id="limit" class="form-select">
+        <option value="all">جميع السيارات</option>
+        <option value="10">آخر 10</option>
+        <option value="20">آخر 20</option>
+        <option value="30">آخر 30</option>
+        <option value="40">آخر 40</option>
+        <option value="50">آخر 50</option>
+      </select>
+    </div>
+    <div class="col-md-3">
+      <button id="btnRefresh" class="btn btn-primary w-100">تحديث الجدول</button>
+    </div>
+  </div>
+
+  <hr>
+
+  <!-- نموذج إضافة/تحديث سيارة -->
+  <div class="card shadow-sm mb-3">
+    <div class="card-header bg-primary text-white">إضافة/تحديث سيارة</div>
+    <div class="card-body">
+      <div class="row g-2">
+        <div class="col-md-4">
+          <label class="form-label">رقم الهيكل (VIN) *</label>
+          <input id="vin" class="form-control" placeholder="مثال: LGWEE4A...">
+        </div>
+        <div class="col-md-4">
+          <label class="form-label">اللوحة</label>
+          <input id="plate" class="form-control" placeholder="مثال: 4784 أو ب ن ب - 4784">
+        </div>
+        <div class="col-md-4">
+          <label class="form-label">الشركة</label>
+          <input id="brand" class="form-control" placeholder="مثال: HAVAL">
+        </div>
+        <div class="col-md-4">
+          <label class="form-label">فئة السيارة (الموديل)</label>
+          <input id="model" class="form-control" placeholder="مثال: JOLION">
+        </div>
+        <div class="col-md-4">
+          <label class="form-label">اللون</label>
+          <input id="color" class="form-control" placeholder="مثال: GRAY">
+        </div>
+        <div class="col-md-4">
+          <label class="form-label">سنة الصناعة</label>
+          <input id="year" class="form-control" placeholder="مثال: 2024">
+        </div>
+      </div>
+      <div class="mt-3 d-flex gap-2">
+        <button id="btnSaveCar" class="btn btn-success">حفظ السيارة</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- نموذج إضافة سجل تغيير زيت -->
+  <div class="card shadow-sm mb-3">
+    <div class="card-header bg-primary text-white">إضافة سجل تغيير زيت</div>
+    <div class="card-body">
+      <div class="row g-2">
+        <div class="col-md-4">
+          <label class="form-label">اللوحة</label>
+          <input id="h_plate" class="form-control">
+        </div>
+        <div class="col-md-4">
+          <label class="form-label">رقم الهيكل (اختياري)</label>
+          <input id="h_vin" class="form-control">
+        </div>
+        <div class="col-md-4">
+          <label class="form-label">تاريخ التغيير</label>
+          <input id="h_date" type="date" class="form-control">
+        </div>
+        <div class="col-md-4">
+          <label class="form-label">عداد السيارة</label>
+          <input id="h_odometer" class="form-control" placeholder="مثال: 12500">
+        </div>
+        <div class="col-md-4">
+          <label class="form-label">ممشى الزيت (كم)</label>
+          <input id="h_oilrun" class="form-control" placeholder="مثال: 7000">
+        </div>
+        <div class="col-md-4">
+          <label class="form-label">ملاحظات</label>
+          <input id="h_notes" class="form-control">
+        </div>
+      </div>
+      <div class="mt-3 d-flex gap-2">
+        <button id="btnAddOil" class="btn btn-warning">إضافة السجل</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- جدول السيارات -->
+  <div class="card shadow-sm">
+    <div class="card-header bg-white fw-bold">جدول السيارات</div>
+    <div class="card-body p-0">
+      <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+          <thead class="table-light">
+            <tr>
+              <th>اللوحة</th>
+              <th>اللون</th>
+              <th>الشركة</th>
+              <th>الموديل</th>
+              <th>رقم الهيكل</th>
+              <th>تاريخ آخر تغيير زيت</th>
+            </tr>
+          </thead>
+          <tbody id="carsBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const COLS = {
+  vin: "رقم الهيكل",
+  plate: "اللوحة",
+  brand: "الشركة",
+  model: "فئة السيارة",
+  color: "اللون",
+  year: "سنة الصناعة",
+  last_oil_date: "تاريخ تغيير الزيت",
+  last_odometer: "عداد السيارة",
+  last_oil_run: "ممشى الزيت",
+  updated_at: "آخر تحديث"
+};
+
+async function fetchCars(){
+  const q = document.getElementById('search').value || '';
+  const limit = document.getElementById('limit').value || 'all';
+  const res = await fetch(`/api/cars?q=${encodeURIComponent(q)}&limit=${encodeURIComponent(limit)}`);
+  return await res.json();
+}
+function renderRows(rows){
+  const body = document.getElementById('carsBody');
+  body.innerHTML = '';
+  rows.forEach(r=>{
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>${r[COLS.plate]||''}</td>
+      <td>${r[COLS.color]||''}</td>
+      <td>${r[COLS.brand]||''}</td>
+      <td>${r[COLS.model]||''}</td>
+      <td>${r[COLS.vin]||''}</td>
+      <td>${r[COLS.last_oil_date]||''}</td>
+    `;
+    body.appendChild(tr);
+  });
+}
+async function refresh(){ renderRows(await fetchCars()); }
+
+document.getElementById('btnRefresh').onclick = refresh;
+document.getElementById('search').oninput = refresh;
+document.getElementById('limit').onchange = refresh;
+
+document.getElementById('btnSaveCar').onclick = async ()=>{
+  const payload = {
+    vin: document.getElementById('vin').value,
+    plate: document.getElementById('plate').value,
+    brand: document.getElementById('brand').value,
+    model: document.getElementById('model').value,
+    color: document.getElementById('color').value,
+    year: document.getElementById('year').value
+  };
+  const res = await fetch('/api/car/save', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload)});
+  const j = await res.json();
+  alert(j.msg || (j.ok?'تم':'خطأ'));
+  refresh();
+};
+
+document.getElementById('btnAddOil').onclick = async ()=>{
+  const payload = {
+    plate: document.getElementById('h_plate').value,
+    vin: document.getElementById('h_vin').value,
+    date: document.getElementById('h_date').value,
+    odometer: document.getElementById('h_odometer').value,
+    oil_run: document.getElementById('h_oilrun').value,
+    notes: document.getElementById('h_notes').value
+  };
+  const res = await fetch('/api/oil_history/add', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload)});
+  const j = await res.json();
+  alert(j.msg || (j.ok?'تم':'خطأ'));
+  refresh();
+};
+
+// أول تحميل
+refresh();
+</script>
+</body>
+</html>
