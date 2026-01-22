@@ -7,16 +7,106 @@
 
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&display=swap');
-body{font-family:Tajawal;background:#0b1220;color:#fff;margin:0;}
-.topbar{background:#101d36;padding:15px;display:flex;justify-content:space-between;align-items:center;}
-.btn{background:#3b82f6;border:0;padding:10px 15px;border-radius:8px;color:#fff;cursor:pointer;}
-.btn.red{background:#ef4444;}
-.btn.green{background:#22c55e;}
-.btn.yellow{background:#eab308;}
-.card{background:#0f1b33;padding:20px;border-radius:12px;margin:10px;}
-input,select,textarea{width:100%;padding:10px;margin-top:5px;border-radius:8px;background:#162544;color:#fff;border:1px solid #243b55;}
-table{width:100%;border-collapse:collapse;margin-top:15px;}
-th,td{padding:10px;border-bottom:1px solid rgba(255,255,255,.1);}
+*,
+*::before,
+*::after{
+  box-sizing:border-box;
+}
+
+body{
+  margin:0;
+  font-family: system-ui, -apple-system, "Segoe UI", Tahoma, Arial;
+  color:#0B1220;
+  background:#F7FAFF;
+}
+
+.topbar{
+  background:#FFFFFF;
+  padding:16px 18px;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  border-bottom:1px solid rgba(15,23,42,.10);
+  box-shadow:0 6px 18px rgba(2,6,23,.08);
+}
+.topbar *{
+  color:#0B1220;
+  font-weight:700;
+}
+
+.btn{
+  background:linear-gradient(180deg,#0B5ED7,#0A3E9A);
+  border:0;
+  padding:10px 14px;
+  border-radius:14px;
+  color:#fff;
+  cursor:pointer;
+  font-weight:600;
+  box-shadow:0 8px 18px rgba(11,94,215,.22);
+}
+
+.btn.red{
+  background:linear-gradient(180deg,#DC2626,#991B1B);
+}
+
+.btn.green{
+  background:linear-gradient(180deg,#16A34A,#15803D);
+}
+
+.btn.yellow{
+  background:linear-gradient(180deg,#F59E0B,#D97706);
+}
+
+.card{
+  background:#FFFFFF;
+  padding:20px;
+  border-radius:18px;
+  margin:14px auto;
+  max-width:1200px;
+  border:1px solid rgba(15,23,42,.10);
+  box-shadow:0 14px 40px rgba(2,6,23,.10);
+}
+
+input,select,textarea{
+  width:100%;
+  max-width:100%;
+  display:block;
+
+  padding:12px 14px;
+  margin-top:6px;
+  border-radius:14px;
+  background:#FFFFFF;
+  color:#0B1220;
+  border:1px solid rgba(15,23,42,.10);
+  font-size:14px;
+}
+input:focus,select:focus,textarea:focus{
+  outline:none;
+  border-color:rgba(11,94,215,.5);
+  box-shadow:0 0 0 4px rgba(11,94,215,.12);
+}
+
+table{
+  width:100%;
+  max-width:100%;
+  border-collapse:collapse;
+  margin-top:14px;
+  border-radius:14px;
+  overflow:hidden;
+  background:#FFFFFF;
+}
+
+th,td{
+  padding:12px;
+  border-bottom:1px solid rgba(15,23,42,.08);
+  font-size:14px;
+  color:#0B1220;
+}
+th{
+  background:#F1F5F9;
+  font-weight:700;
+}
+
 </style>
 </head>
 

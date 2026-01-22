@@ -2,8 +2,21 @@
 <html lang="ar" dir="rtl">
 <head>
   <meta charset="UTF-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
   <title>لوحة الموارد البشرية | SEVENS</title>
+<!-- PWA -->
+<link rel="manifest" href="/static/manifest.json">
+<meta name="theme-color" content="#1976d2">
+
+<!-- iOS Web App -->
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="SEVENS">
+
+<link rel="apple-touch-icon" sizes="180x180" href="/static/icons/ios/180.png">
+<link rel="apple-touch-icon" sizes="167x167" href="/static/icons/ios/167.png">
+<link rel="apple-touch-icon" sizes="152x152" href="/static/icons/ios/152.png">
+<link rel="apple-touch-icon" sizes="120x120" href="/static/icons/ios/120.png">
 
   <!-- خطوط وأيقونات -->
   <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -17,12 +30,24 @@
       --green:#43a047; --red:#e53935; --amber:#ffb300; --shadow: rgba(0,0,0,.06);
     }
     *{margin:0;padding:0;box-sizing:border-box;font-family:'Tajawal',sans-serif}
-    body{background:var(--sky);color:var(--ink);min-height:100vh}
+    body{
+    background:var(--sky);
+    color:var(--ink);
+    min-height:100vh
+      padding-bottom: env(safe-area-inset-bottom);
+  -webkit-tap-highlight-color: transparent;
+    }
 
     /* Navbar */
     .navbar{
-      background:#fff;padding:16px 24px;display:flex;justify-content:space-between;align-items:center;
-      box-shadow:0 2px 12px var(--shadow);position:sticky;top:0;z-index:100
+      background:#fff;
+      padding:16px 24px;
+      display:flex;justify-content:space-between;
+      align-items:center;
+      box-shadow:0 2px 12px var(--shadow);
+      position:sticky;top:0;z-index:100
+        flex-wrap: wrap;
+  gap: 12px;
     }
     .logo-box{display:flex;align-items:center;gap:12px}
     .logo-box img{width:40px;height:40px;object-fit:contain;border-radius:10px}
@@ -35,7 +60,16 @@
 
     /* Tabs */
     .tabs{display:flex;gap:10px;margin-bottom:18px;flex-wrap:wrap}
-    .tab-btn{padding:10px 14px;border:2px solid var(--blue-50);border-radius:10px;background:#fff;color:#1565c0;font-weight:700;cursor:pointer}
+    .tab-btn{
+    padding:10px 14px;
+    border:2px solid var(--blue-50);
+    border-radius:10px;
+    background:#fff;
+    color:#1565c0;
+    font-weight:700;
+    cursor:pointer
+    touch-action: manipulation;
+    }
     .tab-btn.active{background:linear-gradient(90deg,var(--blue-500),var(--blue-700));color:#fff;border-color:transparent}
     .tab{display:none}
     .tab.active{display:block}
@@ -44,8 +78,21 @@
 
     /* Filters & Buttons */
     .filters{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:12px}
-    .form-control{padding:10px;border:2px solid var(--blue-50);border-radius:10px;background:#fff}
-    .btn{padding:10px 14px;border:none;border-radius:10px;font-weight:700;cursor:pointer}
+    .form-control{
+    padding:10px;
+    border:2px solid var(--blue-50);
+    border-radius:10px;
+    background:#fff
+      font-size:16px;
+    }
+    .btn{
+    padding:10px 14px;
+    border:none;
+    border-radius:10px;
+    font-weight:700;
+    cursor:pointer
+      touch-action: manipulation;
+    }
     .btn-primary{background:linear-gradient(90deg,var(--blue-500),var(--blue-700));color:#fff}
     .btn-green{background:var(--green);color:#fff}
     .btn-danger{background:var(--red);color:#fff}
@@ -144,6 +191,42 @@
       .modal .row{grid-template-columns:1fr}
       .request-card{aspect-ratio:auto}
     }
+
+      /* 📱 Mobile Optimization */
+@media (max-width:768px){
+
+  .logo-box h1{
+    font-size:18px;
+  }
+
+  .user-info{
+    font-size:14px;
+    gap:8px;
+  }
+
+  .tabs{
+    gap:8px;
+  }
+
+  .tab-btn{
+    font-size:14px;
+    padding:8px 12px;
+  }
+
+  .filters{
+    flex-direction:column;
+    align-items:stretch;
+  }
+
+  .requests-grid{
+    grid-template-columns:repeat(auto-fill,minmax(240px,1fr));
+  }
+
+  table{
+    font-size:14px;
+  }
+}
+
   </style>
 </head>
 <body>
@@ -368,6 +451,14 @@
   </div>
 
   <script>
+
+      if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker
+      .register("/static/service-worker.js")
+      .catch(err => console.log("SW error", err));
+  });
+}
     /* ========== Utilities ========== */
     function normalizeArabicJS(t){
       t = (t||'').toString().trim();

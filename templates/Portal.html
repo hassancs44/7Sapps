@@ -2,8 +2,21 @@
 <html lang="ar" dir="rtl">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>بوابة SEVENS</title>
+<!-- PWA -->
+<link rel="manifest" href="/static/manifest.json">
+<meta name="theme-color" content="#1976d2">
+
+<!-- iOS Web App -->
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="SEVENS">
+
+<link rel="apple-touch-icon" sizes="180x180" href="/static/icons/ios/180.png">
+<link rel="apple-touch-icon" sizes="167x167" href="/static/icons/ios/167.png">
+<link rel="apple-touch-icon" sizes="152x152" href="/static/icons/ios/152.png">
+<link rel="apple-touch-icon" sizes="120x120" href="/static/icons/ios/120.png">
 
   <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
@@ -15,6 +28,7 @@
       margin: 0;
       padding: 0;
       min-height: 100vh;
+        padding-bottom: env(safe-area-inset-bottom);
     }
 
     .header {
@@ -29,11 +43,11 @@
 
     .apps-grid {
       max-width: 1100px;
-      margin: 50px auto;
+      margin: 30px auto;
       padding: 20px;
       display: grid;
       grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
-      gap: 30px;
+       gap: 22px;
       justify-items: center;
     }
 
@@ -42,6 +56,7 @@
       text-align: center;
       cursor: pointer;
       transition: 0.25s ease;
+        touch-action: manipulation;
     }
 
     .app-item:hover {
@@ -61,6 +76,7 @@
       font-size: 32px;
       color: #1976d2;
       transition: 0.25s ease;
+        flex-shrink: 0;
     }
 
     .app-item:hover .icon-wrapper {
@@ -75,6 +91,35 @@
     }
 
     .hidden { display: none !important; }
+
+      /* 📱 تحسين للجوال */
+@media (max-width: 480px) {
+  .header {
+    font-size: 20px;
+    padding: 16px;
+  }
+
+  .apps-grid {
+    grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+    gap: 18px;
+    padding: 10px;
+  }
+
+  .app-item {
+    width: 110px;
+  }
+
+  .icon-wrapper {
+    width: 72px;
+    height: 72px;
+    font-size: 28px;
+  }
+
+  .app-name {
+    font-size: 14px;
+  }
+}
+
   </style>
 </head>
 
@@ -123,9 +168,27 @@
   <div class="app-name">المستودع والعهد</div>
 </div>
 
+
+      <!-- الصيانة الدورية -->
+<div id="app-periodic-maintenance" class="app-item hidden">
+  <div class="icon-wrapper">
+    <i class="fas fa-calendar-check"></i>
+  </div>
+  <div class="app-name">الصيانة الدورية</div>
+</div>
+
+
   </div>
 
 <script>
+
+    if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("/static/service-worker.js")
+      .catch(err => console.log("SW failed", err));
+  });
+}
+
   // ===========================
   // تحميل بيانات المستخدم من LocalStorage
   // ===========================
@@ -198,6 +261,13 @@ if (hasApp("warehouse")) {
   if (el) el.classList.remove("hidden");
 }
 
+
+// الصيانة الدورية (نظام مستقل)
+if (hasApp("periodic_maintenance")) {
+  const el = document.getElementById("app-periodic-maintenance");
+  if (el) el.classList.remove("hidden");
+}
+
   }
 
   // ===========================
@@ -244,6 +314,14 @@ if (appWarehouse) {
   appWarehouse.addEventListener("click", () => {
     window.location.href = "/core";
   });
+
+  const appPeriodic = document.getElementById("app-periodic-maintenance");
+if (appPeriodic) {
+  appPeriodic.addEventListener("click", () => {
+    window.location.href = "/pm";
+  });
+}
+
 }
 
 </script>

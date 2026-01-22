@@ -2,8 +2,21 @@
 <html lang="ar" dir="rtl">
 <head>
   <meta charset="UTF-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
   <title>لوحة الأدمن | SEVENS</title>
+<!-- PWA -->
+<link rel="manifest" href="/static/manifest.json">
+<meta name="theme-color" content="#1976d2">
+
+<!-- iOS Web App -->
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="SEVENS">
+
+<link rel="apple-touch-icon" sizes="180x180" href="/static/icons/ios/180.png">
+<link rel="apple-touch-icon" sizes="167x167" href="/static/icons/ios/167.png">
+<link rel="apple-touch-icon" sizes="152x152" href="/static/icons/ios/152.png">
+<link rel="apple-touch-icon" sizes="120x120" href="/static/icons/ios/120.png">
 
   <!-- خطوط وأيقونات -->
   <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -28,6 +41,9 @@
       background:var(--sky);
       color:var(--ink);
       min-height:100vh
+        padding-bottom: env(safe-area-inset-bottom);
+  -webkit-tap-highlight-color: transparent;
+
     }
 
     /* Navbar */
@@ -41,10 +57,12 @@
       position:sticky;
       top:0;
       z-index:100
+        flex-wrap: wrap;
+  gap: 10px;
     }
     .logo-box{display:flex;align-items:center;gap:12px}
     .logo-box img{width:40px;height:40px;object-fit:contain;border-radius:10px}
-    .logo-box h1{color:var(--blue-600);font-size:20px;font-weight:700}
+    .logo-box h1{color:var(--blue-600);font-size: clamp(16px, 4vw, 20px);font-weight:700}
     .user-info{display:flex;align-items:center;gap:12px;color:#34495e;font-weight:600}
     .logout-btn{
       background:#e3f2fd;
@@ -159,10 +177,11 @@
 
     /* Requests grid (cards) */
     .requests-grid{
-      display:grid;
-      grid-template-columns:repeat(auto-fill,minmax(280px,1fr));
-      gap:18px
-    }
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(260px,1fr));
+  gap:16px
+}
+
     .request-card{
       background:#fff;
       border-radius:18px;
@@ -240,6 +259,45 @@
     .toast.success{background:#4caf50}
     .toast.error{background:#e74c3c}
     .toast.info{background:#3498db}
+
+      /* 📱 Mobile adjustments */
+@media (max-width: 768px){
+  .container{
+    padding: 0 10px;
+  }
+
+  .tabs{
+    gap:6px;
+  }
+
+  .tab-btn{
+    padding:8px 10px;
+    font-size:14px;
+  }
+
+  .request-card{
+    padding:14px;
+  }
+
+  .request-title{
+    font-size:16px;
+  }
+
+  table thead{
+    display:none;
+  }
+
+  table tbody tr{
+    display:block;
+    margin-bottom:10px;
+  }
+
+  table tbody td{
+    display:block;
+    width:100%;
+  }
+}
+
   </style>
 </head>
 <body>
@@ -444,6 +502,13 @@
   </div>
 
   <script>
+
+      if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("/static/service-worker.js")
+      .catch(err => console.log("SW failed", err));
+  });
+}
     /* ================== Utilities ================== */
     function normalizeArabicJS(t){
       t = (t||'').toString().trim();

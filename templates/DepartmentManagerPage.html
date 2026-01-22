@@ -2,8 +2,24 @@
 <html lang="ar" dir="rtl">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
+
   <title>لوحة مدير القسم | SEVENS</title>
+
+
+    <!-- PWA -->
+<link rel="manifest" href="/static/manifest.json">
+<meta name="theme-color" content="#1e88e5">
+
+<!-- iOS Web App -->
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="SEVENS">
+
+<link rel="apple-touch-icon" sizes="180x180" href="/static/icons/ios/180.png">
+<link rel="apple-touch-icon" sizes="167x167" href="/static/icons/ios/167.png">
+<link rel="apple-touch-icon" sizes="152x152" href="/static/icons/ios/152.png">
+<link rel="apple-touch-icon" sizes="120x120" href="/static/icons/ios/120.png">
 
   <!-- الخطوط والأيقونات -->
   <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
@@ -26,6 +42,9 @@
       background: #f8fbff;
       color: #2c3e50;
       min-height: 100vh;
+        padding-bottom: env(safe-area-inset-bottom);
+  -webkit-tap-highlight-color: transparent;
+
     }
 
     /* ===== الشريط العلوي (Navbar) ===== */
@@ -39,6 +58,9 @@
       position: sticky;
       top: 0;
       z-index: 100;
+        flex-wrap: wrap;
+  gap: 10px;
+
     }
 
     .logo-box {
@@ -56,7 +78,7 @@
 
     .logo-box h1 {
       color: #1e88e5;
-      font-size: 22px;
+      font-size: clamp(16px, 4vw, 22px);
       font-weight: 700;
     }
 
@@ -134,11 +156,11 @@
 
     /* ===== بطاقات الطلبات ===== */
     .requests-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-      gap: 22px;
-      justify-content: center;
-    }
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 16px;
+}
+
 
     .request-card {
   background: #ffffff;
@@ -746,6 +768,60 @@
     .toast.success { background: #43a047; }
     .toast.error { background: #e53935; }
     .toast.info { background: #1e88e5; }
+
+      /* 📱 Mobile Responsive */
+@media (max-width: 768px) {
+
+  .container {
+    padding: 0 12px;
+  }
+
+  .page-header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .page-title {
+    font-size: 20px;
+    text-align: center;
+  }
+
+  .export-section {
+    justify-content: center;
+  }
+
+  .toggle-btn {
+    padding: 8px 14px;
+    font-size: 14px;
+  }
+
+  .request-title {
+    font-size: 16px;
+  }
+
+  .request-desc {
+    font-size: 13px;
+  }
+
+  .status-info {
+    flex-direction: column;
+    gap: 6px;
+    align-items: flex-start;
+  }
+
+  .chatbot-widget {
+    width: calc(100% - 20px);
+    left: 10px;
+    bottom: 90px;
+  }
+
+  .chatbot-float-btn {
+    width: 52px;
+    height: 52px;
+    font-size: 22px;
+  }
+}
+
   </style>
 </head>
 
@@ -938,6 +1014,14 @@
 
   <!-- 🔹 السكربت -->
   <script>
+
+      if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker
+      .register("/static/service-worker.js")
+      .catch(err => console.log("SW error", err));
+  });
+}
     // ==================== متغيرات عامة ====================
     let currentUser = null;
     let allEmployees = [];

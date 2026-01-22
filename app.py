@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify, render_template, send_from_directory, session, redirect
+from flask import Flask, request, jsonify, render_template, send_from_directory, session, redirect, url_for
 from flask_cors import CORS
 import pandas as pd
 import os
@@ -2821,6 +2821,524 @@ app.register_blueprint(core_it_api, url_prefix="/api/core/it")
 app.register_blueprint(core_hr_api, url_prefix="/api/core/hr")
 app.register_blueprint(core_finance_api, url_prefix="/api/core/finance")
 app.register_blueprint(core_admin_api, url_prefix="/api/core/admin")
+
+
+# ============================================================
+# ✅ PM (Periodic Maintenance) - Integrated with Portal Session
+#   - Uses the MAIN portal login/session: session["user"]
+#   - NO pm_users.xlsx
+#   - NO pm/login.html
+#   - NO session["pm_user"]
+#   - Admin of PM = "مدير عام" (General Manager)
+# ============================================================
+
+import uuid
+import base64
+from datetime import datetime
+from functools import wraps
+
+# ---------- Paths (Your actual paths) ----------
+PM_DATA_DIR   = r"C:\py\7s\data"
+PM_MAINT_FILE = r"C:\py\7s\data\maintenance.xlsx"
+PM_WASH_FILE  = r"C:\py\7s\data\wash.xlsx"
+PM_SIG_DIR    = r"C:\py\7s\data\signatures_pm"
+
+PM_COLUMNS = [
+    "id",
+    "service_key",         # maintenance | wash
+    "service_type",        # صيانة | غسيل
+    "description",         # وصف الصيانة (أو '-' في الغسيل)
+    "note",                # ملاحظة للغسيل (اختياري)
+    "date",                # yyyy-mm-dd
+    "employee",
+    "vehicle_id",          # اللوحة/الهيكل
+    "start_time",          # HH:MM
+    "end_time",            # HH:MM
+    "total_minutes",
+    "total_text",
+    "signature_file",
+    "created_at"
+]
+
+def pm_ensure_dirs_and_files():
+    os.makedirs(PM_DATA_DIR, exist_ok=True)
+    os.makedirs(PM_SIG_DIR, exist_ok=True)
+
+    for path in [PM_MAINT_FILE, PM_WASH_FILE]:
+        if not os.path.exists(path):
+            pd.DataFrame(columns=PM_COLUMNS).to_excel(path, index=False)
+        else:
+            df = pd.read_excel(path)
+            changed = False
+            for col in PM_COLUMNS:
+                if col not in df.columns:
+                    df[col] = ""
+                    changed = True
+            df = df[PM_COLUMNS]
+            if changed:
+                df.to_excel(path, index=False)
+
+# ---------- Auth (Portal Session Only) ----------
+def pm_is_admin_user(user: dict) -> bool:
+    """
+    Admin of PM = مدير عام فقط
+    مصدر الصلاحية من database.xlsx (عمود: الصلاحية)
+    """
+    # الصلاحية العربية من قاعدة البيانات
+    role_ar = str(user.get("الصلاحية", "")).strip()
+
+    if role_ar == "مدير عام":
+        return True
+
+    # دعم احتياطي لو عندك role انجليزي في المستقبل
+    role_en = str(user.get("role", "")).lower()
+    if role_en in ["general_manager", "admin"]:
+        return True
+
+    return False
+
+
+def pm_auth_required(admin_only=False):
+    def decorator(fn):
+        @wraps(fn)
+        def inner(*args, **kwargs):
+            user = session.get("user")
+            if not user:
+                # main system login page
+                return redirect("/Login.html")
+
+            if admin_only and not pm_is_admin_user(user):
+                return "🚫 غير مصرح لك بالدخول الى لوحة بيانات الصيانة الدورية", 403
+
+            return fn(*args, **kwargs)
+        return inner
+    return decorator
+
+# ---------- Helpers ----------
+def pm_parse_hhmm(t):
+    hh, mm = str(t).split(":")
+    return int(hh), int(mm)
+
+def pm_calc_total_minutes_from_time(start_hhmm, end_hhmm):
+    sh, sm = pm_parse_hhmm(start_hhmm)
+    eh, em = pm_parse_hhmm(end_hhmm)
+    start = sh * 60 + sm
+    end = eh * 60 + em
+    diff = end - start
+    if diff < 0:
+        diff += 24 * 60
+    return diff
+
+def pm_minutes_to_text(total_minutes):
+    total_minutes = int(total_minutes or 0)
+    h = total_minutes // 60
+    m = total_minutes % 60
+    if h == 0:
+        return f"{m} دقيقة"
+    if m == 0:
+        return f"{h} ساعة"
+    return f"{h} ساعة و {m} دقيقة"
+
+def pm_save_signature(data_url):
+    if not data_url or "base64," not in data_url:
+        return ""
+    b64 = data_url.split("base64,", 1)[1]
+    img_bytes = base64.b64decode(b64)
+    filename = f"sig_{datetime.now().strftime('%Y%m%d_%H%M%S')}_{uuid.uuid4().hex[:8]}.png"
+    out_path = os.path.join(PM_SIG_DIR, filename)
+    with open(out_path, "wb") as f:
+        f.write(img_bytes)
+    return filename
+
+def pm_append_record(excel_path, row_dict):
+    pm_ensure_dirs_and_files()
+    df = pd.read_excel(excel_path)
+    for c in PM_COLUMNS:
+        if c not in df.columns:
+            df[c] = ""
+    df = df[PM_COLUMNS]
+    df.loc[len(df)] = [row_dict.get(c, "") for c in PM_COLUMNS]
+    df.to_excel(excel_path, index=False)
+
+def pm_read_all_records():
+    pm_ensure_dirs_and_files()
+    maint = pd.read_excel(PM_MAINT_FILE)
+    wash  = pd.read_excel(PM_WASH_FILE)
+
+    for df0 in (maint, wash):
+        for c in PM_COLUMNS:
+            if c not in df0.columns:
+                df0[c] = ""
+        df0 = df0[PM_COLUMNS]
+
+    maint["source"] = "maintenance"
+    wash["source"]  = "wash"
+
+    df = pd.concat([maint, wash], ignore_index=True)
+
+    def resolve_source(row):
+        sk = str(row.get("service_key", "")).strip()
+        if sk in ("maintenance", "wash"):
+            return sk
+        return str(row.get("source", "")).strip()
+
+    df["source"] = df.apply(resolve_source, axis=1)
+
+    # normalize types
+    df["date"] = df.get("date", "").astype(str)
+    df["employee"] = df.get("employee", "").astype(str)
+    df["vehicle_id"] = df.get("vehicle_id", "").astype(str)
+    df["start_time"] = df.get("start_time", "").astype(str)
+    df["end_time"] = df.get("end_time", "").astype(str)
+    df["created_at"] = df.get("created_at", "").astype(str)
+    df["total_minutes"] = pd.to_numeric(df.get("total_minutes", 0), errors="coerce").fillna(0).astype(int)
+
+    for c in PM_COLUMNS + ["source"]:
+        if c not in df.columns:
+            df[c] = ""
+    return df.fillna("")
+
+def pm_filter_records(df, args):
+    hour = (args.get("hour") or "").strip()
+    service = (args.get("service") or "all").strip().lower()  # all/maintenance/wash
+    date_from = (args.get("date_from") or "").strip()
+    date_to = (args.get("date_to") or "").strip()
+    employee = (args.get("employee") or "").strip()
+    vehicle_id = (args.get("vehicle_id") or "").strip()
+    min_minutes = (args.get("min_minutes") or "").strip()
+    max_minutes = (args.get("max_minutes") or "").strip()
+    q = (args.get("q") or "").strip()
+
+    if hour:
+        hh = hour.zfill(2)
+        df = df[df["start_time"].astype(str).str.startswith(hh)]
+
+    if service in ["maintenance", "wash"]:
+        df = df[df["source"] == service]
+
+    def to_date_safe(x):
+        try:
+            return datetime.strptime(str(x)[:10], "%Y-%m-%d")
+        except:
+            return None
+
+    if date_from:
+        dfrom = to_date_safe(date_from)
+        if dfrom:
+            df = df[df["date"].apply(lambda v: to_date_safe(v) is not None and to_date_safe(v) >= dfrom)]
+
+    if date_to:
+        dto = to_date_safe(date_to)
+        if dto:
+            df = df[df["date"].apply(lambda v: to_date_safe(v) is not None and to_date_safe(v) <= dto)]
+
+    if employee:
+        df = df[df["employee"].str.contains(employee, case=False, na=False)]
+
+    if vehicle_id:
+        df = df[df["vehicle_id"].str.contains(vehicle_id, case=False, na=False)]
+
+    if min_minutes:
+        try:
+            mn = int(min_minutes)
+            df = df[df["total_minutes"] >= mn]
+        except:
+            pass
+
+    if max_minutes:
+        try:
+            mx = int(max_minutes)
+            df = df[df["total_minutes"] <= mx]
+        except:
+            pass
+
+    if q:
+        ql = q.lower()
+        def row_match(r):
+            s = " ".join([
+                str(r.get("description","")),
+                str(r.get("note","")),
+                str(r.get("employee","")),
+                str(r.get("vehicle_id","")),
+                str(r.get("service_type","")),
+                str(r.get("date","")),
+            ]).lower()
+            return ql in s
+        df = df[df.apply(row_match, axis=1)]
+
+    return df
+
+# ============================================================
+# ✅ ROUTES (Prefixed under /pm)
+# ============================================================
+
+@app.route("/pm")
+@pm_auth_required(admin_only=False)
+def pm_home():
+    user = session["user"]
+    if pm_is_admin_user(user):
+        return redirect(url_for("pm_dashboard"))
+    return redirect(url_for("pm_work"))
+
+@app.route("/pm/work")
+@pm_auth_required(admin_only=False)
+def pm_work():
+    # الجلسة العامة للنظام
+    user = session["user"]
+
+    # ✅ المدير العام لا يدخل صفحة work أبداً
+    if pm_is_admin_user(user):
+        return redirect(url_for("pm_dashboard"))
+
+    # role هنا للواجهة فقط (ليس له علاقة بالصلاحيات)
+    role_view = "user"
+
+    return render_template(
+        "pm/work.html",
+        role=role_view,
+        # الاسم مأخوذ من database.xlsx (عمود: الاسم)
+        user_name=user.get("الاسم", user.get("name", ""))
+    )
+
+@app.route("/pm/submit/maintenance", methods=["POST"])
+@pm_auth_required(admin_only=False)
+def pm_submit_maintenance():
+    pm_ensure_dirs_and_files()
+
+    description = (request.form.get("description") or "").strip()
+    date = (request.form.get("date") or "").strip()
+    employee = (request.form.get("employee") or "").strip()
+    vehicle_id = (request.form.get("vehicle_id") or "").strip()
+    start_time = (request.form.get("start_time") or "").strip()
+    end_time = (request.form.get("end_time") or "").strip()
+    signature_data = (request.form.get("signature_data") or "").strip()
+
+    if not (description and date and employee and vehicle_id and start_time and end_time and signature_data):
+        return jsonify({"ok": False, "msg": "فضلاً أكمل جميع الحقول المطلوبة واعتمد التوقيع."}), 400
+
+    total_minutes = pm_calc_total_minutes_from_time(start_time, end_time)
+    total_text = pm_minutes_to_text(total_minutes)
+    sig_file = pm_save_signature(signature_data)
+
+    row = {
+        "id": uuid.uuid4().hex[:10],
+        "service_key": "maintenance",
+        "service_type": "صيانة",
+        "description": description,
+        "note": "",
+        "date": date,
+        "employee": employee,
+        "vehicle_id": vehicle_id,
+        "start_time": start_time,
+        "end_time": end_time,
+        "total_minutes": int(total_minutes),
+        "total_text": total_text,
+        "signature_file": sig_file,
+        "created_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+    }
+    pm_append_record(PM_MAINT_FILE, row)
+
+    return jsonify({"ok": True, "msg": "تم حفظ عملية الصيانة بنجاح", "total_text": total_text})
+
+@app.route("/pm/submit/wash", methods=["POST"])
+@pm_auth_required(admin_only=False)
+def pm_submit_wash():
+    pm_ensure_dirs_and_files()
+
+    date = (request.form.get("date") or "").strip()
+    employee = (request.form.get("employee") or "").strip()
+    vehicle_id = (request.form.get("vehicle_id") or "").strip()
+    start_time = (request.form.get("start_time") or "").strip()
+    end_time = (request.form.get("end_time") or "").strip()
+    note = (request.form.get("note") or "").strip()
+    signature_data = (request.form.get("signature_data") or "").strip()
+
+    if not (date and employee and vehicle_id and start_time and end_time and signature_data):
+        return jsonify({"ok": False, "msg": "فضلاً أكمل جميع الحقول المطلوبة واعتمد التوقيع."}), 400
+
+    total_minutes = pm_calc_total_minutes_from_time(start_time, end_time)
+    total_text = pm_minutes_to_text(total_minutes)
+    sig_file = pm_save_signature(signature_data)
+
+    row = {
+        "id": uuid.uuid4().hex[:10],
+        "service_key": "wash",
+        "service_type": "غسيل",
+        "description": "-",
+        "note": note,
+        "date": date,
+        "employee": employee,
+        "vehicle_id": vehicle_id,
+        "start_time": start_time,
+        "end_time": end_time,
+        "total_minutes": int(total_minutes),
+        "total_text": total_text,
+        "signature_file": sig_file,
+        "created_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+    }
+    pm_append_record(PM_WASH_FILE, row)
+
+    return jsonify({"ok": True, "msg": "تم حفظ عملية الغسيل بنجاح", "total_text": total_text})
+
+@app.route("/pm/signature/<filename>")
+@pm_auth_required(admin_only=True)
+def pm_view_signature(filename):
+    path = os.path.join(PM_SIG_DIR, filename)
+    if not os.path.exists(path):
+        return "Not Found", 404
+    return send_file(path)
+
+@app.route("/pm/dashboard")
+@pm_auth_required(admin_only=True)
+def pm_dashboard():
+    user = session["user"]
+    return render_template("pm/dashboard.html", user_name=user.get("name", ""))
+
+@app.route("/pm/api/analytics")
+@pm_auth_required(admin_only=True)
+def pm_api_analytics():
+    df = pm_read_all_records()
+    df = pm_filter_records(df, request.args)
+
+    total = len(df)
+    maint_count = int((df["source"] == "maintenance").sum())
+    wash_count  = int((df["source"] == "wash").sum())
+
+    if total > 0:
+        avg_minutes = int(df["total_minutes"].mean())
+        med_minutes = int(df["total_minutes"].median())
+        min_minutes = int(df["total_minutes"].min())
+        max_minutes = int(df["total_minutes"].max())
+        sum_minutes = int(df["total_minutes"].sum())
+    else:
+        avg_minutes = med_minutes = min_minutes = max_minutes = sum_minutes = 0
+
+    daily = (
+        df.groupby(["date"])["id"].count()
+          .reset_index()
+          .rename(columns={"id":"count"})
+          .sort_values("date")
+          .to_dict(orient="records")
+    )
+
+    svc_daily = (
+        df.groupby(["date","source"])["id"].count()
+          .reset_index()
+          .rename(columns={"id":"count"})
+          .sort_values(["date","source"])
+          .to_dict(orient="records")
+    )
+
+    if total > 0:
+        emp = (
+            df.groupby("employee")
+              .agg(count=("id","count"), avg=("total_minutes","mean"), sum=("total_minutes","sum"))
+              .reset_index()
+        )
+        emp["avg"] = emp["avg"].round(0).astype(int)
+        emp["sum"] = emp["sum"].astype(int)
+        emp = emp.sort_values("count", ascending=False).head(15)
+        top_employees = emp.to_dict(orient="records")
+    else:
+        top_employees = []
+
+    if total > 0:
+        top_vehicles = (
+            df.groupby("vehicle_id")["id"].count()
+              .sort_values(ascending=False)
+              .head(15)
+              .reset_index()
+              .rename(columns={"id":"count"})
+              .to_dict(orient="records")
+        )
+    else:
+        top_vehicles = []
+
+    def bucket(m):
+        if m <= 30: return "0-30"
+        if m <= 60: return "31-60"
+        if m <= 120: return "61-120"
+        return "120+"
+
+    if total > 0:
+        tmp = df.copy()
+        tmp["bucket"] = tmp["total_minutes"].apply(bucket)
+        buckets = (
+            tmp.groupby("bucket")["id"].count()
+               .reindex(["0-30","31-60","61-120","120+"], fill_value=0)
+               .reset_index()
+               .rename(columns={"id":"count"})
+               .to_dict(orient="records")
+        )
+    else:
+        buckets = [
+            {"bucket":"0-30","count":0},
+            {"bucket":"31-60","count":0},
+            {"bucket":"61-120","count":0},
+            {"bucket":"120+","count":0}
+        ]
+
+    def hour_of(t):
+        try:
+            return int(str(t).split(":")[0])
+        except:
+            return None
+
+    if total > 0:
+        df2 = df.copy()
+        df2["hour"] = df2["start_time"].apply(hour_of)
+        df2 = df2[df2["hour"].notna()]
+        hours = (
+            df2.groupby("hour")
+               .size()
+               .reset_index(name="count")
+               .sort_values("hour")
+               .to_dict(orient="records")
+        )
+    else:
+        hours = []
+
+    df["_created"] = pd.to_datetime(df["created_at"], errors="coerce")
+    rows = df.sort_values("_created", ascending=False).head(2000).drop(columns=["_created"]).to_dict(orient="records")
+
+    resp = jsonify({
+        "ok": True,
+        "stats": {
+            "total": total,
+            "maintenance": maint_count,
+            "wash": wash_count,
+            "avg_minutes": avg_minutes,
+            "avg_text": pm_minutes_to_text(avg_minutes),
+            "median_text": pm_minutes_to_text(med_minutes),
+            "min_text": pm_minutes_to_text(min_minutes),
+            "max_text": pm_minutes_to_text(max_minutes),
+            "sum_text": pm_minutes_to_text(sum_minutes),
+        },
+        "daily": daily,
+        "svc_daily": svc_daily,
+        "top_employees": top_employees,
+        "top_vehicles": top_vehicles,
+        "buckets": buckets,
+        "hours": hours,
+        "rows": rows
+    })
+    resp.headers["Cache-Control"] = "no-store"
+    return resp
+
+@app.route("/pm/export")
+@pm_auth_required(admin_only=True)
+def pm_export():
+    df = pm_read_all_records()
+    df = pm_filter_records(df, request.args)
+    out_path = os.path.join(PM_DATA_DIR, f"pm_export_{datetime.now().strftime('%Y%m%d_%H%M%S')}.xlsx")
+    df.to_excel(out_path, index=False)
+    return send_file(out_path, as_attachment=True)
+
+# ✅ Ensure schemas exist once after injection load
+try:
+    pm_ensure_dirs_and_files()
+except Exception as _e:
+    print("⚠️ PM ensure files error:", _e)
 
 # ============== التشغيل ==============
 if __name__ == "__main__":
